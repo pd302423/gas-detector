@@ -1303,11 +1303,12 @@ function serialBlockedBecause() {
 const SERIAL_BLOCK = serialBlockedBecause();
 const SERIAL_SUPPORTED = SERIAL_BLOCK === null;
 let port = null, serialReader = null, keepReading = false;
-let lastUsbLine = 0, warmupLeft = 0;
+let lastUsbLine = 0, warmupLeft = 0, connectError = null;
 const STATUS_NAMES = ["SAFE", "WARNING", "DANGER"];
 
 async function connectUsb() {
   if (source === "usb") { await disconnectUsb(); return; }
+  connectError = null;
   try {
     port = await navigator.serial.requestPort();
     await port.open({baudRate: 115200});
@@ -1325,22 +1326,13 @@ async function connectUsb() {
     paintConnectBanner();
     readLoop();
   } catch (e) {
-    const note = $("#usbNote");
-    note.hidden = false;
-    if (e && e.name === "NotFoundError") {
-      // Chrome throws this both when the user cancels and when the picker had
-      // nothing to show, so cover the second case rather than failing silently.
-      note.innerHTML =
-        "<b>No port chosen.</b> If the list was empty, the board is not reaching this computer: " +
-        "check the USB cable actually carries data (many charging cables do not), and confirm " +
-        "the Arduino IDE lists a port under <b>Tools → Port</b>.";
-    } else {
-      note.innerHTML =
-        "<b>Could not open the port:</b> " + ((e && e.message) || e) + ". " +
-        "The usual cause is another program already holding it — <b>close the Arduino IDE's " +
-        "Serial Monitor</b> and try again. Only one program can own a serial port.";
-    }
+    // Surfaced in the connect banner rather than tucked under the hero — this
+    // is connection state, and the banner is where the user is already looking.
+    connectError = (e && e.name === "NotFoundError")
+      ? {kind: "no_port"}
+      : {kind: "open_failed", detail: (e && e.message) || String(e)};
     port = null;
+    paintConnectBanner();
   }
 }
 
@@ -2451,9 +2443,42 @@ function paintConnectBanner() {
     return;
   }
 
+  // A failed attempt is its own state — the generic "press Connect" copy is
+  // useless to someone who just pressed Connect and watched it fail.
+  if (connectError) {
+    banner.hidden = false;
+    banner.style.borderColor = "var(--danger)";
+    $("#btnUsbBig").hidden = false;
+    $("#btnUsbBig").textContent = "Try again";
+    $("#connectEyebrow").textContent = "Connection failed";
+
+    if (connectError.kind === "no_port") {
+      $("#connectTitle").textContent = "No port was chosen";
+      $("#connectWhy").innerHTML =
+        "If the picker was <b>empty</b>, the board is not reaching this computer at all. Check " +
+        "the USB cable actually carries data — many charging cables do not — and confirm the " +
+        "Arduino IDE lists a port under <b>Tools → Port</b>. If it cannot see the board, neither " +
+        "can the browser.";
+    } else {
+      $("#connectTitle").textContent = "Something else is holding that port";
+      $("#connectWhy").innerHTML =
+        "<code>" + connectError.detail + "</code><br><br>" +
+        "Only one program can own a serial port at a time, and something already has this one. " +
+        "In order of likelihood:<br>" +
+        "<b>1.</b> Quit the <b>Arduino IDE completely</b> — on Windows it keeps the port even " +
+        "after you close the Serial Monitor, and closing just the monitor is not enough.<br>" +
+        "<b>2.</b> Close <b>any other tab</b> with this dashboard open — a tab you connected " +
+        "earlier still owns the port, including one you reloaded away from.<br>" +
+        "<b>3.</b> Unplug the Arduino, wait a few seconds, plug it back in, then press " +
+        "<b>Try again</b>.";
+    }
+    return;
+  }
+
   banner.hidden = false;
   banner.style.borderColor = "var(--accent)";
   $("#btnUsbBig").hidden = !SERIAL_SUPPORTED;
+  $("#btnUsbBig").textContent = "Connect detector";
   $("#connectEyebrow").textContent = SERIAL_SUPPORTED ? "Not connected" : "Cannot connect here";
   $("#connectTitle").textContent = "You are looking at simulated data";
   $("#connectWhy").innerHTML = SERIAL_SUPPORTED
