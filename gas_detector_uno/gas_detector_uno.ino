@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Gas Detection System — Arduino Uno + MQ-series sensor + I2C 16x2 LCD
  *
  * The simple, safe build: everything runs at 5V, so the MQ output goes
@@ -33,7 +33,7 @@
 
 // Which sensor do you have? Read the number on the metal can: MQ-2, MQ-135...
 // Valid: 2, 3, 4, 5, 6, 7, 8, 9, 135
-#define MQ_SELECT 2
+#define MQ_SELECT 135
 #include "mq_curves.h"
 
 // --- configuration ---------------------------------------------------------

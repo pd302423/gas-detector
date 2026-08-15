@@ -13,7 +13,7 @@
 // Read the number stamped on the metal can under the steel mesh: MQ-2, MQ-135...
 // If the mesh hides it, the PCB silkscreen usually says it too.
 // Valid: 2, 3, 4, 5, 6, 7, 8, 9, 135
-#define MQ_SELECT 2
+#define MQ_SELECT 135
 
 // --- 2. WIFI ---------------------------------------------------------------
 // The ESP8266 is 2.4 GHz only. If your router broadcasts one name for both

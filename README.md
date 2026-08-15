@@ -1,6 +1,6 @@
-# Air Sentinel
+﻿# Air Sentinel
 
-A gas detector that reports its own blind spots — Arduino Uno, MQ-2 sensor, 16×2 I²C LCD, and a
+A gas detector that reports its own blind spots — Arduino Uno, MQ-135 sensor, 16×2 I²C LCD, and a
 browser dashboard that reads the board directly over USB.
 
 **Live dashboard:** https://gas-amber-eta.vercel.app
@@ -81,16 +81,18 @@ Toxics alarm on health limits instead:
 
 ### Curve fits are only valid inside a band
 
-The `ppm = a·(Rs/R₀)^b` fit comes from a curve the datasheet only draws across a limited range. Outside it, the fit is fiction. An MQ-2 at Rs/R₀ = 0.6 will happily report **180,000 ppm of CO** if you let it — a number with no physical meaning, which then dominates the alarm.
+The `ppm = a·(Rs/R₀)^b` fit comes from a curve the datasheet only draws across a limited range. Outside it, the fit is fiction — an MQ-2 at Rs/R₀ = 0.6 will happily report **180,000 ppm of CO** if you let it, a number with no physical meaning that would then dominate the alarm.
 
 So every gas carries a `minPpm`/`maxPpm` band, and:
 
 - Readings are **clamped** to the band and flagged `below` / `in` / `above`.
 - A gas whose **warning threshold sits below the sensor's own floor** is excluded from alarm logic entirely and labelled *not resolvable*.
 
-That last rule has a consequence worth stating plainly: **an MQ-2 is not a CO detector.** Its floor is 200 ppm; CO becomes a health concern at 35 ppm and lethal by 800. By the time an MQ-2 can see CO at all you are already in serious trouble. The firmware shows the CO row for context and refuses to alarm on it. If you want CO, use an **MQ-7**, whose 20 ppm floor sits below the 35 ppm exposure limit.
+For the MQ-135 in this build, those two rules produce three results worth stating plainly:
 
-Same logic flags MQ-135's benzene row (1 ppm threshold, 10 ppm floor) and notes that its CO₂ danger level of 5,000 ppm is above the sensor's 1,000 ppm ceiling — it saturates before it can alarm.
+- **Benzene is unresolvable.** It matters at 1 ppm and the sensor's floor is 10 ppm, so the row is displayed for context and can never raise an alarm. A sensor that cannot see a carcinogen until it is ten times over the limit should not claim to detect it.
+- **CO₂ saturates before it can alarm.** Its danger threshold is 5,000 ppm; the sensor's ceiling is 1,000 ppm. It will pin at WARNING and never reach DANGER, and the Sensor tab labels the threshold "above ceiling" rather than pretending otherwise.
+- **Carbon monoxide is not measured at all.** The MQ-135 has no CO response curve — not a poor one, none. That is the most important gap in this build, because CO is odourless and is what a faulty geyser or generator produces. **Add an MQ-7** if you want CO; its 20 ppm floor sits below the 35 ppm exposure limit.
 
 ---
 
@@ -114,7 +116,7 @@ Full detail in **[docs/WIRING.md](docs/WIRING.md)**. The short version:
 Ten wires, no resistors, no transistors, nothing else to buy.
 
 ```
-MQ-2 module  VCC  -> Uno 5V        LCD backpack VCC -> Uno 5V
+MQ-135 module  VCC  -> Uno 5V        LCD backpack VCC -> Uno 5V
              GND  -> Uno GND                    GND -> Uno GND
              AOUT -> Uno A0                     SDA -> Uno A4
              DOUT -> Uno D7  (optional)         SCL -> Uno A5
@@ -137,7 +139,7 @@ adds the dashboard.
 The ESP8266 build is still here and still works, but it is **v2, not the main
 build**. It buys one thing — operation with no computer at all — and costs a
 voltage divider on `A0` (5 V into a 3.3 V pin destroys the ADC), I²C level
-shifting, a VIN rail that sits near 4.7 V when the MQ-2's heater wants
+shifting, a VIN rail that sits near 4.7 V when the MQ-135's heater wants
 5.0 V ± 0.1 V, WiFi credentials, and a dependency on whatever network is
 available. Five failure modes for one benefit that the Uno already provides.
 
@@ -216,7 +218,7 @@ Each boot also runs a 180-second heater warm-up before it will report anything.
 
 **LCD, normal state** — cycles through each gas, one every 2.5s:
 ```
-MQ-2  LPG
+MQ-135  LPG
 12.4 ppm  SAFE
 ```
 
@@ -346,8 +348,8 @@ That regenerates `gas_detector_esp8266/web_page.h` as a PROGMEM string (~70 KB o
 
 ### Testing it without a gas leak
 
-- **Butane lighter, valve open, no flame**, held ~10 cm away for 2 seconds. Reliable for MQ-2/4/5/6. Do this outdoors or by an open window.
-- **Isopropyl alcohol / hand sanitiser** on a cotton bud, waved near the mesh. Works on MQ-3 and will also light up MQ-2 and MQ-135 — a good demonstration of exactly why cross-sensitivity means you can't identify the gas.
+- **Butane lighter, valve open, no flame**, held ~10 cm away for 2 seconds. Reliable for MQ-135/4/5/6. Do this outdoors or by an open window.
+- **Isopropyl alcohol / hand sanitiser** on a cotton bud, waved near the mesh. Works on MQ-3 and will also light up MQ-135 and MQ-135 — a good demonstration of exactly why cross-sensitivity means you can't identify the gas.
 - **Do not** test a CO sensor with a real CO source indoors.
 
 ---
@@ -376,7 +378,7 @@ This is a learning and demonstration project. It is not a certified gas detector
 
 | File | Purpose |
 |---|---|
-| `mq_curves.h` | Response curves, valid bands, and hazard thresholds for MQ-2/3/4/5/6/7/8/9/135. Edit here to add a sensor or change a threshold |
+| `mq_curves.h` | Response curves, valid bands, and hazard thresholds for MQ-135/3/4/5/6/7/8/9/135. Edit here to add a sensor or change a threshold |
 | `gas_detector_esp8266/config.h` | Pins, WiFi, timing, alarm behaviour |
 | `gas_detector_esp8266/gas_detector_esp8266.ino` | ESP8266 build with LCD, alarm, and web dashboard |
 | `gas_detector_esp8266/web_page.h` | **Generated.** The dashboard as a PROGMEM string |

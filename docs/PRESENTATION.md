@@ -1,4 +1,4 @@
-# Booth guide
+﻿# Booth guide
 
 Everything you need at the table, in the order you'll need it.
 
@@ -14,7 +14,7 @@ If they don't bite, the follow-up is:
 
 > "This sensor gives me exactly one number — a resistance. Everything else on this screen is me interpreting that one number. So the interesting question isn't what it detects. It's what it's allowed to claim."
 
-**Do not open with** "this is a gas detection system using an MQ-2 sensor and an Arduino." Every third project at the fair opens that way, and it tells the judge nothing they can't see.
+**Do not open with** "this is a gas detection system using an MQ-135 sensor and an Arduino." Every third project at the fair opens that way, and it tells the judge nothing they can't see.
 
 ---
 
@@ -26,27 +26,29 @@ The order matters. Step 3 is the moment the project lands, and it only works if 
 
 > "That's the measurement. One resistance, divided by what the same resistance was in clean air. Everything else is derived from it."
 
-**2. Butane.** Unlit lighter, valve open, 10 cm from the mesh, two seconds. Do this near an open window.
+**2. Hand sanitiser.** A cotton bud dipped in sanitiser or isopropyl alcohol, 10 cm from the mesh.
 
-Watch: LPG climbs, the buzzer chirps at WARNING, then holds solid at DANGER. The LCD pins to the offending gas. The event log records both transitions.
+Watch: the reading climbs hard, the buzzer chirps at WARNING, then holds solid at DANGER. The LCD pins to the gas driving it. The event log records both transitions.
 
-> "Ten percent of the lower explosive limit. That's the industrial alarm point — a factor of ten below an atmosphere that can actually ignite."
+> "That's ethanol evaporating. The sensor's resistance just dropped by a factor of five."
 
-**3. Now break it.** Wait for it to settle, then hand sanitiser on a cotton bud, same distance.
+**3. Now break it — breathe on it.** Let it settle first, then breathe steadily across the mesh for a few seconds.
 
-The sensor spikes again — and reports **LPG** again. There is no LPG anywhere near it.
+It spikes again. Same alarm, same kind of number — from human breath.
 
-> "That's ethanol. The sensor can't tell the difference, and neither can any software I write on top of it. It's one resistor. Alcohol, butane, smoke, hydrogen — they all push it the same direction."
+> "Nothing about those two is alike. One is alcohol vapour, the other is the carbon dioxide and moisture in my lungs. The sensor reports them the same way, and no software I write on top of it can separate them. It's one resistor — anything that gives up electrons at its surface pushes it the same direction."
 
-**This is the moment.** You have just deliberately fooled your own project in front of a judge and explained exactly why. Most students hide this. Showing it is the strongest thing you can do.
+**This is the moment.** You have just deliberately fooled your own project in front of a judge and explained exactly why. Most students hide this. Showing it is the strongest thing you can do — and it needs no flame, so you can repeat it all day indoors.
 
-**4. Open the Sensor tab.** Four gas rows, all computed from that one measurement.
+**4. Open the Sensor tab.** Five gas rows, all computed from that one measurement.
 
-> "Four interpretations of one number. At most one of them is true, and the sensor doesn't know which. So the alarm runs on the worst case."
+> "Five interpretations of one number. At most one of them is true, and the sensor doesn't know which. So the alarm runs on the worst case."
 
-**5. Show the CO row, greyed out, marked *not resolvable*.** Then go to the Safety tab and show the effect ladder.
+**5. Show benzene, greyed out and marked *not resolvable*.** Then go to the Safety tab and show the CO card.
 
-> "Carbon monoxide kills at 800 ppm. It gives you a headache at 200. This sensor can't see anything below 200 ppm at all — the whole dangerous range is under its floor. So it doesn't pretend. It shows the row and refuses to alarm on it. If you want CO, you need an MQ-7."
+> "Benzene is a carcinogen — it matters at 1 ppm. This sensor bottoms out at 10. It would only see benzene once you were already ten times over the limit, so it shows the row and refuses to alarm on it."
+
+> "And carbon monoxide it doesn't measure at all — there's no response curve for it. That's the one that actually kills people in homes, because it's odourless and a faulty geyser makes it. My detector will not warn you. An MQ-7 would; that's the first thing on the roadmap."
 
 **6. Land the ending.**
 
@@ -68,16 +70,16 @@ Total: about three minutes. Practise until you can do it without looking at note
 > R₀ is the sensor's resistance in clean air, averaged over 64 samples outdoors and stored in EEPROM. Everything is a ratio against it. The sensor also needs 24 to 48 hours of continuous power before its baseline stops drifting — readings before that are meaningless, so I burned it in first.
 
 **"What's Rs over R₀?"**
-> Rs is what the sensor reads now, R₀ is what it read in clean air. Using the ratio instead of the raw resistance cancels out unit-to-unit variation — two MQ-2s can differ by a factor of two in absolute resistance but track each other closely in ratio. That's why the datasheet plots ratio, not ohms.
+> Rs is what the sensor reads now, R₀ is what it read in clean air. Using the ratio instead of the raw resistance cancels out unit-to-unit variation — two MQ-135s can differ by a factor of two in absolute resistance but track each other closely in ratio. That's why the datasheet plots ratio, not ohms.
 
 **"Why can't it identify the gas?"**
 > It's a heated tin-dioxide bead. Any reducing gas that lands on it lowers the resistance. There's one output — no wavelength, no mass, no separation. Identification needs a second independent axis, which one sensor doesn't have.
 
 **"What's the AQI in this room?"** *(This is a trap. Answer it honestly.)*
-> I can't tell you, and I'll show you why. Real AQI needs PM2.5, PM10, ozone, NO₂, SO₂ and CO from six separate reference-grade instruments averaged over hours. I have one sensor that measures none of them. What I show is a combustible-gas index using CPCB's band names and colours so it's readable — and the page says on it that it isn't the CPCB AQI.
+> I can't tell you, and I'll show you why. Real AQI needs PM2.5, PM10, ozone, NO2, SO2 and CO from six separate reference-grade instruments averaged over hours. Mine responds to ammonia, which is one of the eight, but nowhere near across the range the index needs. What I show is a sensor-derived index using CPCB's band names and colours so it's readable — and the page says on it that it isn't the CPCB AQI.
 
 **"Is it safe to be in here, then?"**
-> By this sensor, yes. But "safe" here only means nothing it can detect is above threshold — and it's blind to particulates, ozone, oxygen depletion and low-level CO. That caveat is printed on the Safety tab permanently, because a detector that overstates its coverage is worse than no detector.
+> By this sensor, yes. But "safe" here only means nothing it can detect is above threshold — and it's blind to particulates, ozone, oxygen depletion, and carbon monoxide entirely. That caveat is printed on the Safety tab permanently, because a detector that overstates its coverage is worse than no detector.
 
 **"Does it need the computer?"**
 > No. *(Pull the USB cable. The LCD and buzzer keep running on the charger.)* The detector is autonomous — LCD, buzzer, alarm latching. The laptop only adds the analysis dashboard.
@@ -88,8 +90,8 @@ Total: about three minutes. Practise until you can do it without looking at note
 **"What did it cost?"**
 > Under ₹1,500 for the whole thing. The point isn't the cost though — a certified alarm is about the same and you should own one. This is for understanding how it works.
 
-**"Why 10% of the explosive limit?"**
-> Because you want the alarm to fire while the room is still ten times away from being able to ignite. It's the standard industrial convention. Twenty percent is the evacuate point.
+**"Where do your alarm thresholds come from?"**
+> Published exposure limits, not numbers I picked. Ammonia warns at 25 ppm — the NIOSH eight-hour limit — and hits danger at 300, which is the concentration immediately dangerous to life. The code also implements the ten-percent-of-explosive-limit convention for combustible gases, which is what a commercial LPG alarm uses; my sensor just doesn't measure any of those, so that branch never fires here.
 
 **"What would you do next?"**
 > The sensor array with a classifier, and a heater self-test. In that order.
@@ -103,12 +105,12 @@ Total: about three minutes. Practise until you can do it without looking at note
 | Laptop, dashboard open, connected over USB | The demo |
 | **Spare USB data cable** | The single most likely thing to fail |
 | 5 V / 2 A phone charger | Powers the detector; also proves it runs without the laptop |
-| Butane lighter | Step 2 |
-| Hand sanitiser + cotton buds | Step 3 — the punchline |
+| Hand sanitiser or isopropyl alcohol + cotton buds | Step 2 |
+| Your own breath | Step 3 — the punchline, and it costs nothing |
 | Printed CO effect-ladder graphic | So people can look at it while you talk |
 | Printed one-page abstract | For judges who want to read rather than listen |
 
-**Ventilation:** do the butane test near an open window or door. Don't do it repeatedly in a closed space, and never with an open flame nearby.
+**Ventilation:** the sanitiser test is safe indoors, but let the sensor recover between runs — a saturated sensor takes a minute to come back and a flat reading makes a poor demo. No flame is involved anywhere in this sequence.
 
 ---
 
@@ -118,8 +120,8 @@ Reading left to right, so someone walking past gets the argument in order:
 
 1. **The question** — "What is this sensor actually allowed to claim?"
 2. **How it works** — SnO₂ bead, heater, Rs/R₀, one wiring diagram
-3. **The problem** — four gases, one measurement, the cross-sensitivity result from the sanitiser test
-4. **The CO effect ladder** — biggest graphic on the board, the sensor's floor drawn across the dangerous range
+3. **The problem** — four gases, one measurement, the cross-sensitivity result from the sanitiser-versus-breath test
+4. **The CO effect ladder** — biggest graphic on the board: every concentration at which carbon monoxide harms someone, and this sensor blind to all of it
 5. **What we built** — screenshot of the dashboard, the range clamping and resolvability gating
 6. **What's next** — the sensor array
 

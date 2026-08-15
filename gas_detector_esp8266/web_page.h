@@ -464,15 +464,13 @@ code {
 
       <div class="card wide">
         <div class="card-h"><div><h2>Carbon monoxide: what this sensor cannot see</h2>
-          <div class="sub">Physiological effect against the MQ-2's own detection floor</div></div></div>
+          <div class="sub" id="coSub"></div></div></div>
         <svg class="chart" id="coLadder" style="height:150px" viewBox="0 0 900 150" preserveAspectRatio="none"></svg>
         <div class="tw mt"><table>
-          <thead><tr><th class="n">Concentration</th><th>Effect on a person</th><th class="n">MQ-2</th></tr></thead>
+          <thead><tr><th class="n">Concentration</th><th>Effect on a person</th>
+            <th class="n" id="coColHead">Sensor</th></tr></thead>
           <tbody id="coRows"></tbody></table></div>
-        <p class="note danger mt">Every concentration at which carbon monoxide is dangerous lies at or
-          below this sensor's 200&nbsp;ppm floor. By the time an MQ-2 can see CO at all, a person in that
-          room already has a headache. <strong>Use an MQ-7</strong> — its 20&nbsp;ppm floor sits below the
-          35&nbsp;ppm exposure limit — or a dedicated electrochemical cell.</p>
+        <p class="note danger mt" id="coNote"></p>
       </div>
 
       <div class="card wide">
@@ -1067,7 +1065,7 @@ const HARDENING = [
 /* ===========================================================================
    State
    =========================================================================== */
-let MODEL = 2, MQ = FAMILY[2];
+let MODEL = 135, MQ = FAMILY[135];
 let live = null, demo = false, connected = false;
 let source = "demo";        // "usb" | "device" | "demo"
 let hist = [];                 // {t, ppm[], ratio, status}
@@ -1746,14 +1744,34 @@ function renderSafety() {
         <td class="n">${r[2] === "partial"
           ? '<span class="tag WARNING">only &gt;200 ppm</span>'
           : '<span class="tag DANGER">no</span>'}</td></tr>`).join("");
-    $("#coRows").innerHTML = EXPOSURE.CO.ladder.map(([p, label]) => {
-      const co = live.gases.find(g => g.name === "CO");
-      const blind = co ? p < co.min : p < 200;
-      return `<tr><td class="n num">${p} ppm</td><td${blind ? ' class="sub"' : ""}>${label}</td>
-        <td class="n">${blind ? '<span class="tag DANGER">blind</span>'
-                              : '<span class="tag SAFE">visible</span>'}</td></tr>`;
-    }).join("");
   }
+
+  // Rebuilt on every render, not once: swapping from the simulator to a real
+  // detector can change the sensor model mid-session, and a sensor with no CO
+  // curve at all needs a different story from one that merely starts too high.
+  const co = live.gases.find(g => g.name === "CO");
+  $("#coColHead").textContent = live.model;
+  $("#coSub").textContent = co
+    ? `Physiological effect against the ${live.model}'s own detection floor`
+    : `Physiological effect — and the ${live.model} measures none of it`;
+  $("#coNote").innerHTML = co
+    ? `Every concentration at which carbon monoxide is dangerous lies at or below this sensor's
+       ${ppmFmt(co.min)}&nbsp;ppm floor. By the time the ${live.model} can see CO at all, a person
+       in that room already has a headache. <strong>Use an MQ-7</strong> — its 20&nbsp;ppm floor
+       sits below the 35&nbsp;ppm exposure limit — or a dedicated electrochemical cell.`
+    : `<strong>The ${live.model} does not measure carbon monoxide at all.</strong> Not poorly,
+       not above some threshold — there is no CO response curve for this part, so every row below
+       is invisible to it. That matters because CO is the gas most likely to kill someone in a
+       home: it is odourless, and a faulty geyser or generator produces it. This sensor will not
+       warn you. <strong>Add an MQ-7</strong> — its 20&nbsp;ppm floor sits below the 35&nbsp;ppm
+       exposure limit — or a dedicated electrochemical cell.`;
+
+  $("#coRows").innerHTML = EXPOSURE.CO.ladder.map(([p, label]) => {
+    const blind = co ? p < co.min : true;
+    return `<tr><td class="n num">${p} ppm</td><td${blind ? ' class="sub"' : ""}>${label}</td>
+      <td class="n">${blind ? '<span class="tag DANGER">blind</span>'
+                            : '<span class="tag SAFE">visible</span>'}</td></tr>`;
+  }).join("");
 
   $("#exposureRows").innerHTML = live.gases.map(g => {
     const e = EXPOSURE[g.name] || {};
@@ -1782,18 +1800,25 @@ function drawCoLadder() {
                      * (W - P.l - P.r);
   const axisY = H - P.b;
   const co = live.gases.find(g => g.name === "CO");
-  const floor = co ? co.min : 200;
+  // No CO curve at all: shade the whole scale rather than drawing a floor line
+  // that would imply the sensor sees anything above it.
+  const floor = co ? co.min : hi;
 
   let s = `<rect x="${x(lo)}" y="${P.t}" width="${x(floor) - x(lo)}" height="${axisY - P.t}"
              fill="var(--danger)" opacity=".12" rx="7"/>
            <text x="${(x(lo) + x(floor)) / 2}" y="${P.t - 16}" text-anchor="middle"
-             style="font-size:12px;font-weight:650;fill:var(--danger)">this sensor is blind in here</text>
+             style="font-size:12px;font-weight:650;fill:var(--danger)">${co
+               ? "this sensor is blind in here"
+               : "the " + live.model + " is blind across this entire range"}</text>
            <line x1="${P.l}" x2="${W - P.r}" y1="${axisY}" y2="${axisY}"
-             stroke="var(--line)" stroke-width="2"/>
-           <line x1="${x(floor)}" x2="${x(floor)}" y1="${P.t - 8}" y2="${axisY + 8}"
-             stroke="var(--danger)" stroke-width="2.5" stroke-dasharray="6 4"/>
-           <text x="${x(floor) + 8}" y="${P.t - 2}"
-             style="font-size:11px;font-weight:650;fill:var(--danger)">MQ-2 floor ${ppmFmt(floor)} ppm</text>`;
+             stroke="var(--line)" stroke-width="2"/>`;
+
+  if (co) {
+    s += `<line x1="${x(floor)}" x2="${x(floor)}" y1="${P.t - 8}" y2="${axisY + 8}"
+            stroke="var(--danger)" stroke-width="2.5" stroke-dasharray="6 4"/>
+          <text x="${x(floor) + 8}" y="${P.t - 2}"
+            style="font-size:11px;font-weight:650;fill:var(--danger)">${live.model} floor ${ppmFmt(floor)} ppm</text>`;
+  }
 
   EXPOSURE.CO.ladder.forEach(([ppm]) => {
     const px = x(ppm), blind = ppm < floor;

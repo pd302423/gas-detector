@@ -1,4 +1,4 @@
-# Wiring — Arduino Uno build
+﻿# Wiring — Arduino Uno build
 
 **Ten wires. No resistors, no transistors, no breadboard, nothing else to buy.**
 
@@ -8,7 +8,7 @@ resistor on the board.
 
 ```
                        ┌──────────────────────────┐
-   MQ-2 module         │      ARDUINO UNO         │        PCF8574 backpack
+   MQ-135 module         │      ARDUINO UNO         │        PCF8574 backpack
   ┌───────────┐        │                          │        ┌──────────────┐
   │ VCC ──────┼────────┤ 5V                    5V ├────────┼─ VCC         │
   │ GND ──────┼────────┤ GND                  GND ├────────┼─ GND         │
@@ -28,10 +28,10 @@ resistor on the board.
 
 | # | From | To | Carries |
 |---|---|---|---|
-| 1 | MQ-2 `VCC` | Uno `5V` | Heater supply, ~150 mA |
-| 2 | MQ-2 `GND` | Uno `GND` | Ground |
-| 3 | MQ-2 `AOUT` | Uno `A0` | Analog 0–5 V, straight in |
-| 4 | MQ-2 `DOUT` | Uno `D7` | Optional — the module's own comparator |
+| 1 | MQ-135 `VCC` | Uno `5V` | Heater supply, ~150 mA |
+| 2 | MQ-135 `GND` | Uno `GND` | Ground |
+| 3 | MQ-135 `AOUT` | Uno `A0` | Analog 0–5 V, straight in |
+| 4 | MQ-135 `DOUT` | Uno `D7` | Optional — the module's own comparator |
 | 5 | LCD backpack `VCC` | Uno `5V` | Full-brightness backlight |
 | 6 | LCD backpack `GND` | Uno `GND` | Ground |
 | 7 | LCD backpack `SDA` | Uno `A4` | I²C data — fixed by the hardware |
@@ -85,7 +85,7 @@ resonant peak of most piezo elements, so it is loudest there for the same power.
 
 | Load | Current |
 |---|---|
-| MQ-2 heater | ~150 mA |
+| MQ-135 heater | ~150 mA |
 | LCD + backlight | ~25 mA |
 | Buzzer, peak | ~30 mA |
 | Uno itself | ~50 mA |
@@ -96,7 +96,7 @@ powers the whole thing** — which is convenient, because you need that cable
 connected anyway for the dashboard.
 
 For the exhibition, a **5 V / 2 A phone charger** is better than a laptop port.
-The MQ-2's heater is specified at 5.0 V ± 0.1 V, and a laptop port under load
+The MQ-135's heater is specified at 5.0 V ± 0.1 V, and a laptop port under load
 can sag toward 4.8 V — 4 % less heater power puts the sensing bead at a
 slightly wrong temperature, which shifts the Rs/R₀ characteristic the datasheet
 curves describe. If you own a multimeter, measure the 5 V pin with everything
@@ -126,7 +126,7 @@ else.
 ## First power-up
 
 1. Connect everything with the board unpowered.
-2. Apply power. The MQ-2 should be noticeably warm within a minute — that's the
+2. Apply power. The MQ-135 should be noticeably warm within a minute — that's the
    heater, and it means the 5 V rail is reaching it.
 3. Serial monitor at **115200**. You should see the LCD address, then a
    `GSW,` countdown, then `GS1,` telemetry once a second.

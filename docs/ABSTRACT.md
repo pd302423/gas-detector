@@ -1,7 +1,7 @@
 ﻿# Air Sentinel — a gas detector that reports its own blind spots
 
 **Category:** Electronics / Instrumentation / Environmental Science
-**Hardware:** Arduino Uno · MQ-2 semiconductor gas sensor · 16×2 I²C LCD · piezo alarm
+**Hardware:** Arduino Uno · MQ-135 semiconductor gas sensor · 16×2 I²C LCD · piezo alarm
 **Software:** Arduino C++ firmware · browser dashboard over the Web Serial API
 
 ---
@@ -22,7 +22,7 @@ This project asks a different question from the usual one. Not *"how do we make 
 
 A working combustible-gas alarm with a live analysis dashboard, in which every displayed quantity is traceable to what the hardware can actually support.
 
-**Detector (autonomous).** An Arduino Uno reads the MQ-2's analog output, converts it to sensing resistance Rs, and compares it against R₀ — the same resistance measured in clean air. The ratio Rs/R₀ is the single physical measurement the system makes. A 16×2 LCD displays it, a piezo alarm latches on threshold breach with debounce and hold, and the whole assembly runs from a 5 V supply with no computer attached.
+**Detector (autonomous).** An Arduino Uno reads the MQ-135's analog output, converts it to sensing resistance Rs, and compares it against R₀ — the same resistance measured in clean air. The ratio Rs/R₀ is the single physical measurement the system makes. A 16×2 LCD displays it, a piezo alarm latches on threshold breach with debounce and hold, and the whole assembly runs from a 5 V supply with no computer attached.
 
 **Analysis station.** A browser dashboard reads the detector over USB using the Web Serial API and renders the interpretation layer: per-gas concentration estimates, hazard classification, history, and an explicit statement of measurement validity. The page needs no server, no network, and no cloud service.
 
@@ -30,9 +30,9 @@ A working combustible-gas alarm with a live analysis dashboard, in which every d
 
 Three design decisions distinguish this from a conventional MQ project.
 
-**1. Range clamping.** The datasheet characterises each gas curve only across a limited band. Outside that band the power-law fit is extrapolation with no physical meaning — an MQ-2 at Rs/R₀ = 0.6 evaluates to 180,000 ppm of carbon monoxide, a figure with no relationship to reality that would nonetheless dominate any naive alarm. Every gas therefore carries an explicit validity band, readings are clamped to it, and out-of-band values are flagged rather than reported as measurements.
+**1. Range clamping.** The datasheet characterises each gas curve only across a limited band. Outside that band the power-law fit is extrapolation with no physical meaning — evaluated at a low resistance ratio, an unclamped fit returns concentrations orders of magnitude beyond anything the sensor was characterised for, and that fabricated figure would dominate any naive alarm. Every gas therefore carries an explicit validity band, readings are clamped to it, and out-of-band values are flagged rather than reported as measurements. The MQ-135's carbon dioxide curve makes the point concretely: its danger threshold of 5,000 ppm lies above the sensor's own 1,000 ppm ceiling, so the instrument reports that the threshold is unreachable rather than pretending to cross it.
 
-**2. Resolvability gating.** A gas whose hazard threshold lies *below* the sensor's own detection floor is excluded from alarm logic entirely and labelled unresolvable. For the MQ-2 this produces a striking and important result: **the MQ-2 is not a carbon monoxide detector.** Its floor is 200 ppm. Carbon monoxide reaches its eight-hour occupational exposure limit at 35 ppm, causes headache within two to three hours at 200 ppm, and is lethal within two to three hours at 800 ppm. The entire clinically dangerous range lies at or below the sensor's floor. The instrument is blind to carbon monoxide until the situation is already severe. The firmware displays the carbon monoxide row for context and refuses to alarm on it.
+**2. Resolvability gating.** A gas whose hazard threshold lies *below* the sensor's own detection floor is excluded from alarm logic entirely and labelled unresolvable. For the MQ-135 this applies to benzene, which is a carcinogen with an occupational action level of 1 ppm against a sensor floor of 10 ppm: the instrument could only detect it once exposure was already an order of magnitude over the limit, so the row is displayed for context and can never raise an alarm. The same principle exposes a larger gap by its absence — the MQ-135 has no carbon monoxide response curve at all, and the interface states this rather than leaving a reader to assume a general-purpose air-quality sensor covers the most lethal common indoor gas.
 
 **3. Separation of measurement from inference.** The dashboard presents Rs/R₀ as the measurement and each per-gas concentration as one conditional interpretation of it — *"if this were LPG, it would be this much"* — stating on the page that at most one interpretation can be true and the sensor does not know which. Raw instrument values and derived values are typographically distinguished so the boundary is visible at a glance.
 

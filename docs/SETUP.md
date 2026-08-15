@@ -1,4 +1,4 @@
-# Setup — from parts to a working detector
+﻿# Setup — from parts to a working detector
 
 Every step, in order. Nothing here assumes you have seen the project before.
 
@@ -15,7 +15,7 @@ of them.
 | Part | Notes |
 |---|---|
 | Arduino Uno | Any clone works |
-| MQ-2 gas sensor module | The 4-pin kind with `VCC GND DOUT AOUT`. "Flying Fish" is a common seller |
+| MQ-135 gas sensor module | The 4-pin kind with `VCC GND DOUT AOUT`. "Flying Fish" is a common seller |
 | 16×2 LCD with I²C backpack | The backpack is the small board with 4 pins — `GND VCC SDA SCL` |
 | Active buzzer, 2 terminals | |
 | Jumper wires | 10 male-to-female |
@@ -47,10 +47,10 @@ Ten wires. Do this with the board unplugged.
 
 | From | To |
 |---|---|
-| MQ-2 `VCC` | Uno `5V` |
-| MQ-2 `GND` | Uno `GND` |
-| MQ-2 `AOUT` | Uno `A0` |
-| MQ-2 `DOUT` | Uno `D7` *(optional)* |
+| MQ-135 `VCC` | Uno `5V` |
+| MQ-135 `GND` | Uno `GND` |
+| MQ-135 `AOUT` | Uno `A0` |
+| MQ-135 `DOUT` | Uno `D7` *(optional)* |
 | LCD backpack `VCC` | Uno `5V` |
 | LCD backpack `GND` | Uno `GND` |
 | LCD backpack `SDA` | Uno `A4` |
@@ -72,8 +72,8 @@ the dashboard, where you can tap any wire to see what it carries.
    `LiquidCrystal I2C` → install the one by **Frank de Brabander**.
 2. Open `gas_detector_uno/gas_detector_uno.ino`.
 3. Check two settings at the top of the file:
-   - `MQ_SELECT` — the number stamped on your sensor's metal can. `2` for an
-     MQ-2.
+   - `MQ_SELECT` — the number stamped on your sensor's metal can. `135` for an
+     MQ-135.
    - `BUZZER_PASSIVE` — touch your buzzer briefly across 5 V and GND. A
      **steady tone** means active, leave it `0`. A **single click** means
      passive, set it to `1`.
