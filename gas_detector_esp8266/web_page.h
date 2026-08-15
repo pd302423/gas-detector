@@ -2087,14 +2087,29 @@ function paintAlertUI() {
   if (!alertCfg) { tag.textContent = "checking"; tag.className = "tag"; return; }
 
   if (!usable) {
-    tag.textContent = "unavailable";
+    tag.textContent = alertCfg.reachable ? "no key set" : "no server";
     tag.className = "tag";
     arm.textContent = "Arm alerts";
-    $("#alertSub").textContent = "Not configured on this deployment";
-    alertNote(
-      "This copy has no alert credentials, so nothing can be sent. That is " +
-      "deliberate — keys live only in the deployment's environment variables, " +
-      "never in the repository. <b>docs/SETUP.md</b> has the steps.");
+
+    if (!alertCfg.reachable) {
+      $("#alertSub").textContent = "No server behind this copy of the page";
+      alertNote(
+        "Alerts need the <code>/api/alert</code> function, which only exists on " +
+        "the deployed site. This page is running as a local file or on static " +
+        "hosting, so there is nothing to send through. Open the deployed URL " +
+        "instead — everything else on this page works either way.");
+    } else {
+      $("#alertSub").textContent = "Deployed, but no API key set";
+      alertNote(
+        "The alert function is live and answering — it just has no credentials, " +
+        "so it has nothing to send with. Keys live only in the deployment's " +
+        "environment variables, never in the repository, which is why a fresh " +
+        "clone always starts here.<br><br>" +
+        "Add <code>RESEND_API_KEY</code> and <code>ALERT_FROM</code> in your " +
+        "Vercel project settings, then <b>redeploy</b> — environment variables " +
+        "are read at deploy time, so an existing deployment will not pick them " +
+        "up. Full steps in <b>docs/SETUP.md</b> §7.");
+    }
     return;
   }
 
@@ -2109,11 +2124,15 @@ function paintAlertUI() {
 async function checkAlertConfig() {
   try {
     const r = await fetch("/api/alert", {cache: "no-store"});
-    alertCfg = r.ok ? await r.json() : {configured: false, channels: {}};
+    // `reachable` separates two failures that otherwise look identical: a
+    // deployment whose keys are simply unset, and a copy with no server behind
+    // it at all. The fixes are completely different, so the card must not
+    // conflate them.
+    alertCfg = r.ok
+      ? Object.assign({reachable: true}, await r.json())
+      : {reachable: false, configured: false, channels: {}};
   } catch (e) {
-    // No endpoint at all — opened as a local file, or a static host with no
-    // serverless functions. Same user-visible outcome.
-    alertCfg = {configured: false, channels: {}};
+    alertCfg = {reachable: false, configured: false, channels: {}};
   }
   paintAlertUI();
 }
