@@ -368,6 +368,19 @@ ol.steps, ul.steps { padding: 0; margin: 0; }
 <main>
   <!-- ================= LIVE ================= -->
   <section class="panel stack" id="p-live">
+    <div class="card wide" id="connectBanner" hidden
+         style="display:flex;gap:18px;align-items:center;flex-wrap:wrap;
+                border-color:var(--accent);background:var(--fill)">
+      <div style="flex:1 1 300px;min-width:240px">
+        <div class="eyebrow" id="connectEyebrow">Not connected</div>
+        <div id="connectTitle" style="font-size:1.15rem;font-weight:650;letter-spacing:-.012em;
+             margin-top:3px">You are looking at simulated data</div>
+        <p class="sub" id="connectWhy" style="margin:7px 0 0;max-width:62ch"></p>
+      </div>
+      <button class="btn primary" id="btnUsbBig" style="font-size:1rem;padding:12px 22px"
+              hidden>Connect detector</button>
+    </div>
+
     <div class="hero SAFE" id="hero">
       <div class="gauge">
         <svg viewBox="0 0 168 168" width="168" height="168" aria-hidden="true">
@@ -1553,6 +1566,7 @@ function render() {
   if (!$("#p-history").hidden) drawChart();
   renderStats(); renderEvents(); renderSensor(); renderSafety(); renderSystem();
   gateControls();
+  paintConnectBanner();
   maybeAlert();
 }
 
@@ -2388,9 +2402,40 @@ try {
 /* ===========================================================================
    Wire up the USB control, and be honest when the browser cannot do it
    =========================================================================== */
+/* The header button is easy to miss, and it is the one action the whole page
+   depends on. The Live tab therefore carries a banner that either offers the
+   connection outright or explains, in the same place, exactly why it cannot. */
+function paintConnectBanner() {
+  const banner = $("#connectBanner");
+  if (source === "usb") { banner.hidden = true; return; }
+  banner.hidden = false;
+
+  $("#btnUsbBig").hidden = !SERIAL_SUPPORTED;
+  $("#connectEyebrow").textContent = SERIAL_SUPPORTED ? "Not connected" : "Cannot connect here";
+  $("#connectTitle").textContent = "You are looking at simulated data";
+  $("#connectWhy").innerHTML = SERIAL_SUPPORTED
+    ? "Plug the Arduino in, close the Arduino IDE's Serial Monitor, then press " +
+      "<b>Connect detector</b> and pick its port. The same button sits in the header."
+    : {
+        iframe:
+          "This page is <b>embedded inside another page</b>, and an embedded frame is never " +
+          "allowed to open a USB port. Open the dashboard's own address in its own tab — " +
+          "<b>gas-amber-eta.vercel.app</b> — and the button appears.",
+        insecure:
+          "Opening a USB port needs a <b>secure page</b>. This one is a file on disk or plain " +
+          "http. Use the deployed <b>https</b> address, or serve the folder from " +
+          "<code>localhost</code>.",
+        unsupported:
+          "This browser has no Web Serial support. It exists in <b>Chrome, Edge and Opera on a " +
+          "desktop or laptop</b> — not Firefox, not Safari, and not any browser on a phone or " +
+          "tablet.",
+      }[SERIAL_BLOCK];
+}
+
 $("#btnUsb").hidden = !SERIAL_SUPPORTED;
 if (SERIAL_SUPPORTED) {
   $("#btnUsb").addEventListener("click", connectUsb);
+  $("#btnUsbBig").addEventListener("click", connectUsb);
 } else {
   const n = $("#usbNote");
   n.hidden = false;
@@ -2434,5 +2479,6 @@ poll();
 setInterval(poll, 2000);
 drawDiagram();
 gateControls();
+paintConnectBanner();
 checkAlertConfig();
 </script>
