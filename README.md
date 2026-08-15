@@ -4,7 +4,46 @@ A gas detector that reports its own blind spots — Arduino Uno, MQ-135 sensor, 
 browser dashboard that reads the board directly over USB.
 
 **Live dashboard:** https://gas-amber-eta.vercel.app
-**Setting it up from scratch:** [docs/SETUP.md](docs/SETUP.md) — every step, in order.
+
+---
+
+## Run it
+
+**Already flashed and calibrated?** Four steps to live readings:
+
+1. Plug the Uno into the computer with a **data** cable — charge-only cables have no data lines and the port never appears.
+2. **Close the Arduino IDE's Serial Monitor.** One program per serial port; this is the most common reason step 4 fails.
+3. Open the dashboard in **Chrome or Edge on a desktop** — [the live one](https://gas-amber-eta.vercel.app), or your own copy on `localhost`. It must be https or localhost; a file opened from disk cannot touch a USB port.
+4. Click **Connect detector**, choose the port. The header pill turns to `USB · live`.
+
+**Starting from a box of parts?** In order:
+
+```bash
+# 1. Wire it — ten wires, no resistors.  See docs/WIRING.md
+# 2. Confirm the sensor is alive before anything else
+#    Upload sensor_check/sensor_check.ino, Serial Monitor at 115200.
+#    It must get warm, read a plausible number, and MOVE when you wave
+#    hand sanitiser at it. The third one is the test that matters.
+# 3. Arduino IDE → Manage Libraries → "LiquidCrystal I2C" by Frank de Brabander
+# 4. Upload gas_detector_uno/gas_detector_uno.ino
+# 5. Leave it powered 24–48 h to burn in
+# 6. Outdoors, Serial Monitor at 115200, send  c   to calibrate R0
+```
+
+Serve the dashboard locally, or deploy your own:
+
+```bash
+cd dashboard && npx serve
+```
+
+```bash
+npm i -g vercel && cd dashboard && vercel --prod
+```
+
+Full detail: **[docs/SETUP.md](docs/SETUP.md)** — including email and SMS leak alerts. The same
+instructions are on the **Setup** tab of the dashboard itself.
+
+---
 
 ## Read this first: what an MQ sensor can and cannot do
 

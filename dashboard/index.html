@@ -297,6 +297,29 @@ code {
   font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
   font-size: .85em; background: var(--fill); padding: 1.5px 6px; border-radius: 5px;
 }
+.cmd {
+  font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .84rem; line-height: 1.6; background: var(--bg-sunken);
+  border: 1px solid var(--line); border-radius: 10px;
+  padding: 12px 14px; margin: 10px 0 0; overflow-x: auto; white-space: pre;
+  color: var(--text-2);
+}
+.cmd b { color: var(--text); font-weight: 600; }
+
+/* Numbered steps — the count is meaningful here, the order is the instruction */
+.steps { counter-reset: step; display: grid; gap: 18px; }
+.steps > li { list-style: none; position: relative; padding-left: 42px; }
+.steps > li::before {
+  counter-increment: step; content: counter(step);
+  position: absolute; left: 0; top: -1px;
+  width: 27px; height: 27px; border-radius: 50%;
+  background: var(--accent); color: #fff;
+  font-size: .82rem; font-weight: 650; font-variant-numeric: tabular-nums;
+  display: grid; place-content: center;
+}
+.steps h3 { margin-bottom: 3px; }
+.steps p { margin: 0; color: var(--text-2); font-size: .92rem; }
+ol.steps, ul.steps { padding: 0; margin: 0; }
 
 /* --- Accessibility preferences ------------------------------------------- */
 @media (prefers-reduced-transparency: reduce) {
@@ -334,6 +357,7 @@ code {
       <button role="tab" aria-selected="false" data-p="history">History</button>
       <button role="tab" aria-selected="false" data-p="sensor">Sensor</button>
       <button role="tab" aria-selected="false" data-p="hardware">Wiring</button>
+      <button role="tab" aria-selected="false" data-p="setup">Setup</button>
       <button role="tab" aria-selected="false" data-p="system">System</button>
       <button role="tab" aria-selected="false" data-p="about">Limits</button>
       <button role="tab" aria-selected="false" data-p="roadmap">Roadmap</button>
@@ -613,6 +637,150 @@ code {
             <p class="note warn">Blank screen or two rows of solid blocks is almost always <strong>contrast</strong>. Turn the blue trimmer on the back of the backpack before suspecting anything else.</p>
           </div>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SETUP ================= -->
+  <section class="panel stack" id="p-setup" hidden>
+    <div class="card wide">
+      <div class="card-h"><div class="eyebrow">Running this yourself</div></div>
+      <h1>Four steps to live readings.</h1>
+      <p class="sub mt" style="max-width:62ch">If the detector is already flashed and calibrated,
+        this is the whole procedure. First-time setup is below it.</p>
+
+      <ol class="steps mt" style="margin-top:22px">
+        <li><h3>Plug the Uno into this computer</h3>
+          <p>One USB cable powers the board and carries the data. It must be a <b>data</b> cable —
+            many charging cables have no data lines and the port simply never appears.</p></li>
+        <li><h3>Close the Arduino IDE's Serial Monitor</h3>
+          <p>Only one program can hold a serial port at a time. The Serial Monitor still holding it
+            is the single most common reason the next step fails.</p></li>
+        <li><h3>Open this page in Chrome or Edge, on a computer</h3>
+          <p>Reading a USB port needs the Web Serial API, which Firefox and Safari do not have and
+            no mobile browser has. The page must also be on <b>https</b> or <b>localhost</b> — a
+            file opened from disk cannot touch a port.</p></li>
+        <li><h3>Click <b>Connect detector</b> and choose the port</h3>
+          <p>The pill in the header turns to <b>USB · live</b> and every tab fills with real data.
+            If the button is not visible, the Live tab says which of the conditions above is
+            missing.</p></li>
+      </ol>
+
+      <p class="note mt">Connecting resets the board — that is unavoidable with USB serial. The
+        firmware detects that power never actually dropped and settles in <b>8 seconds</b> instead
+        of restarting the full 180-second heater warm-up.</p>
+    </div>
+
+    <div class="card wide">
+      <div class="card-h"><div><h2>First-time setup</h2>
+        <div class="sub">From a box of parts to a working detector</div></div></div>
+
+      <ol class="steps mt">
+        <li><h3>Wire it — ten wires, no resistors</h3>
+          <p>MQ-135 <code>VCC→5V</code> <code>GND→GND</code> <code>AOUT→A0</code>
+            <code>DOUT→D7</code>; LCD backpack <code>VCC→5V</code> <code>GND→GND</code>
+            <code>SDA→A4</code> <code>SCL→A5</code>; buzzer long leg <code>→D8</code>, short leg
+            <code>→GND</code>. The alarm LED is the Uno's own pin-13 one — nothing to wire.
+            The <b>Wiring</b> tab shows every connection; tap a wire to see what it carries.</p></li>
+
+        <li><h3>Check the sensor actually works</h3>
+          <p>Upload <code>sensor_check/sensor_check.ino</code> first. It needs only three wires and
+            ignores the LCD, so it still reports the truth if the display is dead. Three things
+            prove the sensor is alive: <b>it gets warm</b> within a minute, the reading is
+            <b>plausible</b> rather than zero or pinned, and it <b>moves</b> when you wave hand
+            sanitiser at it. The last one is the one that matters — a dead sensing layer still
+            reads a convincing steady number.</p></li>
+
+        <li><h3>Install the one library and flash the firmware</h3>
+          <p>Arduino IDE → <b>Tools → Manage Libraries</b> → install <b>LiquidCrystal I2C</b> by
+            Frank de Brabander. Open <code>gas_detector_uno/gas_detector_uno.ino</code>, confirm
+            <code>MQ_SELECT</code> matches the number on your sensor's can, set
+            <code>BUZZER_PASSIVE</code> (steady tone from DC = <code>0</code>, single click =
+            <code>1</code>), and upload.</p></li>
+
+        <li><h3>Burn it in for 24–48 hours</h3>
+          <p>A new MQ sensor's baseline drifts for that long. Leave it powered overnight, twice.
+            Readings taken before it settles do not mean anything, and no amount of calibration
+            fixes that.</p></li>
+
+        <li><h3>Calibrate R₀ in clean air</h3>
+          <p>Take it <b>outdoors</b> — not the kitchen, not a room where anyone has cooked or used
+            sanitiser. Serial Monitor at <b>115200</b>, send <code>c</code>. That measures the
+            sensor's clean-air resistance and stores it in EEPROM, where it survives being
+            unplugged. Every number this dashboard shows is a ratio against it, so calibrating in a
+            contaminated room makes everything downstream quietly wrong. Send <code>r</code> any
+            time for raw diagnostics.</p></li>
+      </ol>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="card-h"><div><h2>Commands</h2>
+          <div class="sub">Everything you need on the computer side</div></div></div>
+
+        <p class="sub" style="margin:0">Serve the dashboard locally</p>
+        <pre class="cmd">cd dashboard
+npx serve</pre>
+
+        <p class="sub mt" style="margin-top:16px">Deploy it to the web</p>
+        <pre class="cmd">npm i -g vercel
+cd dashboard
+vercel --prod</pre>
+
+        <p class="sub mt" style="margin-top:16px">Rebuild after editing the dashboard</p>
+        <pre class="cmd">powershell -File tools/build_web_page.ps1</pre>
+
+        <p class="note mt">Deploy from <b>inside</b> <code>dashboard/</code> so
+          <code>index.html</code> lands at the root. If you connect the GitHub repo to Vercel
+          instead, set <b>Root Directory</b> to <code>dashboard</code>.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-h"><div><h2>Serial commands</h2>
+          <div class="sub">Serial Monitor at 115200</div></div></div>
+        <div class="tw"><table style="min-width:280px">
+          <thead><tr><th class="n">Key</th><th>Does</th></tr></thead>
+          <tbody>
+            <tr><td class="n"><code>c</code></td><td>Recalibrate R₀. Outdoors only.</td></tr>
+            <tr><td class="n"><code>r</code></td><td>Raw diagnostics — volts, Rs, R₀, ratio, and
+              the clamped and unclamped ppm with its range flag for every gas.</td></tr>
+          </tbody></table></div>
+        <p class="note warn mt">Close the Serial Monitor before connecting the dashboard. One
+          program per port.</p>
+      </div>
+    </div>
+
+    <div class="card wide">
+      <div class="card-h"><div><h2>When it doesn't work</h2></div></div>
+      <div class="tw"><table>
+        <thead><tr><th>Symptom</th><th>Cause</th></tr></thead>
+        <tbody>
+          <tr><td>LCD blank, or two rows of solid blocks</td><td class="sub">Contrast. Turn the blue trimmer on the back of the I²C backpack before suspecting anything else.</td></tr>
+          <tr><td><code>No I2C device found</code></td><td class="sub">SDA/SCL swapped, backpack unpowered, or a cold solder joint on the 16-pin header.</td></tr>
+          <tr><td>No port in Arduino IDE</td><td class="sub">Charge-only USB cable, or a missing CH340 driver on an Uno clone.</td></tr>
+          <tr><td>No <b>Connect detector</b> button</td><td class="sub">Page is on <code>file://</code> or plain http, is embedded in another page, or the browser is not Chrome/Edge. The Live tab names which.</td></tr>
+          <tr><td>Connect fails, port list empty</td><td class="sub">Same cable and driver causes as above — if the Arduino IDE cannot see it, neither can the browser.</td></tr>
+          <tr><td>Connect fails with an error</td><td class="sub">Something else holds the port. Close the Serial Monitor.</td></tr>
+          <tr><td>ppm pinned at maximum</td><td class="sub">R₀ was calibrated in dirty air. Redo it outdoors.</td></tr>
+          <tr><td>Readings drift for hours</td><td class="sub">Normal on a new sensor. Finish the burn-in.</td></tr>
+          <tr><td>Readings shift with the weather</td><td class="sub">Real — SnO₂ is humidity-sensitive. Compensation is on the Roadmap tab.</td></tr>
+          <tr><td>Alerts card says unavailable</td><td class="sub">No API key on this deployment, or no server behind this copy of the page. The card says which.</td></tr>
+        </tbody></table></div>
+    </div>
+
+    <div class="card wide">
+      <div class="card-h"><div><h2>Source and full documentation</h2></div></div>
+      <div class="prose">
+        <p>Everything — firmware, this dashboard, the wiring reference, the booth guide — is at
+          <a href="https://github.com/pd302423/gas-detector" target="_blank" rel="noopener"
+             style="color:var(--accent)">github.com/pd302423/gas-detector</a>.</p>
+        <p><code>docs/SETUP.md</code> in that repository is the long-form version of this page,
+          including deploying your own copy and switching on email or SMS leak alerts.
+          <code>docs/WIRING.md</code> is the printable wiring sheet.</p>
+        <p class="note danger">This is a demonstration and teaching instrument. It has no
+          self-test, no sensor-failure detection, no battery backup and no certification, and its
+          calibration traces to a curve fit against a datasheet graph rather than a reference gas.
+          For actual protection of a home with an LPG cylinder, buy a BIS or CE certified alarm.</p>
       </div>
     </div>
   </section>
