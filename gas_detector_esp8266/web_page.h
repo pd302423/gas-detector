@@ -1331,6 +1331,10 @@ async function connectUsb() {
     source = "usb";
     lastUsbLine = Date.now();
     $("#btnUsb").textContent = "Disconnect";
+    // Repaint now. The next render() is gated on a telemetry line arriving, and
+    // the board is about to spend its first seconds warming up in silence —
+    // without this the page still reads "not connected" while it is connected.
+    paintConnectBanner();
     readLoop();
   } catch (e) {
     const note = $("#usbNote");
@@ -1359,6 +1363,7 @@ async function disconnectUsb() {
   port = null; serialReader = null; warmupLeft = 0;
   source = "demo";
   $("#btnUsb").textContent = "Connect detector";
+  paintConnectBanner();
 }
 
 async function readLoop() {
@@ -1427,6 +1432,7 @@ function renderWarmup() {
   $("#heroDetail").innerHTML =
     `The heater needs to reach a stable temperature before any reading means anything. ` +
     `<b>${warmupLeft}s</b> remaining.`;
+  paintConnectBanner();
 }
 
 let prefilled = false;
@@ -1455,6 +1461,7 @@ async function poll() {
     if (Date.now() - lastUsbLine > 5000) {
       $("#connPill").textContent = "USB · no data";
       $("#connPill").className = "pill lost";
+      paintConnectBanner();
     }
     return;
   }
@@ -2419,9 +2426,45 @@ try {
    connection outright or explains, in the same place, exactly why it cannot. */
 function paintConnectBanner() {
   const banner = $("#connectBanner");
-  if (source === "usb") { banner.hidden = true; return; }
-  banner.hidden = false;
 
+  if (source === "usb") {
+    const silentFor = Date.now() - lastUsbLine;
+
+    if (warmupLeft > 0) {
+      // Opening the port resets the board, so the first thing a freshly
+      // connected detector does is warm its heater — 8 s after a reset that
+      // kept power, 180 s from cold. Nothing is wrong; say so.
+      banner.hidden = false;
+      banner.style.borderColor = "var(--warn)";
+      $("#btnUsbBig").hidden = true;
+      $("#connectEyebrow").textContent = "Connected";
+      $("#connectTitle").textContent = `Sensor warming up — ${warmupLeft}s`;
+      $("#connectWhy").innerHTML =
+        "The heater has to reach a stable temperature before a reading means anything. " +
+        "Readings appear on their own when this finishes.";
+      return;
+    }
+
+    if (silentFor > 5000) {
+      banner.hidden = false;
+      banner.style.borderColor = "var(--danger)";
+      $("#btnUsbBig").hidden = true;
+      $("#connectEyebrow").textContent = "Connected, but silent";
+      $("#connectTitle").textContent = "The port is open and nothing is arriving";
+      $("#connectWhy").innerHTML =
+        "The board is not sending telemetry. Either it has not been flashed with " +
+        "<code>gas_detector_uno.ino</code>, or it is running an older sketch. Upload the current " +
+        "firmware and reconnect — a serial monitor at <b>115200</b> should show a " +
+        "<code>GS1,…</code> line once a second.";
+      return;
+    }
+
+    banner.hidden = true;
+    return;
+  }
+
+  banner.hidden = false;
+  banner.style.borderColor = "var(--accent)";
   $("#btnUsbBig").hidden = !SERIAL_SUPPORTED;
   $("#connectEyebrow").textContent = SERIAL_SUPPORTED ? "Not connected" : "Cannot connect here";
   $("#connectTitle").textContent = "You are looking at simulated data";
