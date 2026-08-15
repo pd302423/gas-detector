@@ -376,6 +376,23 @@ code {
       </div>
 
       <div class="card">
+        <div class="card-h"><div><h2>Alerts</h2>
+          <div class="sub" id="alertSub">Notify someone when the alarm latches</div></div>
+          <span class="tag" id="alertTag">off</span></div>
+        <label class="sub" for="alertTo" style="display:block;margin-bottom:6px">
+          Email address, or phone with country code</label>
+        <input id="alertTo" type="text" inputmode="email" autocomplete="off" spellcheck="false"
+          placeholder="you@example.com  or  +919876543210"
+          style="width:100%;font:inherit;font-size:.92rem;padding:9px 12px;border-radius:10px;
+                 border:1px solid var(--line);background:var(--bg);color:var(--text)">
+        <div class="row mt">
+          <button class="btn primary" id="btnArm">Arm alerts</button>
+          <button class="btn" id="btnAlertTest">Send test</button>
+        </div>
+        <p class="sub mt" id="alertMsg" style="min-height:2.4em"></p>
+      </div>
+
+      <div class="card">
         <div class="card-h"><h2>Signal chain</h2><span class="sub">raw → ppm</span></div>
         <dl class="kv" id="chain"></dl>
       </div>
@@ -1370,6 +1387,7 @@ function render() {
   if (!$("#p-history").hidden) drawChart();
   renderStats(); renderEvents(); renderSensor(); renderSafety(); renderSystem();
   gateControls();
+  maybeAlert();
 }
 
 function renderGases() {
@@ -2028,6 +2046,134 @@ $("#lcdRows").innerHTML = LCD_PINS.map(r =>
   `<tr><td class="n num">${r[0]}</td><td><code>${r[1]}</code></td><td class="sub">${r[2]}</td></tr>`).join("");
 
 /* ===========================================================================
+   Alerts
+
+   The page never holds a key. It decides *that* an alert is warranted and
+   posts to /api/alert, which runs on the server and holds the credentials.
+   Served from anywhere without those environment variables — a fresh clone,
+   a local file — the endpoint reports itself unconfigured and this panel
+   says so plainly rather than failing silently.
+   =========================================================================== */
+let alertCfg = null;          // null until /api/alert answers
+let alertArmed = false;
+let alertLastStatus = "SAFE"; // edge detection: fire on entry, not every poll
+
+function alertNote(text, tone) {
+  const el = $("#alertMsg");
+  el.innerHTML = text;
+  el.style.color = tone ? `var(--${tone})` : "var(--text-3)";
+}
+
+function paintAlertUI() {
+  const tag = $("#alertTag"), arm = $("#btnArm");
+  const usable = alertCfg && alertCfg.configured;
+
+  $("#alertTo").disabled = !usable;
+  $("#btnAlertTest").disabled = !usable;
+  arm.disabled = !usable;
+
+  if (!alertCfg) { tag.textContent = "checking"; tag.className = "tag"; return; }
+
+  if (!usable) {
+    tag.textContent = "unavailable";
+    tag.className = "tag";
+    arm.textContent = "Arm alerts";
+    $("#alertSub").textContent = "Not configured on this deployment";
+    alertNote(
+      "This copy has no alert credentials, so nothing can be sent. That is " +
+      "deliberate — keys live only in the deployment's environment variables, " +
+      "never in the repository. <b>docs/SETUP.md</b> has the steps.");
+    return;
+  }
+
+  const ch = [alertCfg.channels.email && "email", alertCfg.channels.sms && "SMS"]
+    .filter(Boolean).join(" and ");
+  $("#alertSub").textContent = `Notify someone by ${ch} when the alarm latches`;
+  tag.textContent = alertArmed ? "armed" : "off";
+  tag.className = "tag " + (alertArmed ? "SAFE" : "");
+  arm.textContent = alertArmed ? "Disarm" : "Arm alerts";
+}
+
+async function checkAlertConfig() {
+  try {
+    const r = await fetch("/api/alert", {cache: "no-store"});
+    alertCfg = r.ok ? await r.json() : {configured: false, channels: {}};
+  } catch (e) {
+    // No endpoint at all — opened as a local file, or a static host with no
+    // serverless functions. Same user-visible outcome.
+    alertCfg = {configured: false, channels: {}};
+  }
+  paintAlertUI();
+}
+
+async function sendAlert({test = false} = {}) {
+  const to = $("#alertTo").value.trim();
+  if (!to) { alertNote("Enter an email address or phone number first.", "warn"); return; }
+
+  const w = worstGas();
+  const lel = {LPG: 18000, CH4: 50000, H2: 40000}[w.name];
+  const payload = {
+    to, test,
+    gas: w.name,
+    ppm: ppmFmt(w.ppm),
+    unit: MQ.unit,
+    status: test ? "WARNING" : live.status,
+    ratio: fmt(live.ratio, 3),
+    pctLEL: lel ? fmt(100 * w.ppm / lel, 1) : null,
+  };
+
+  alertNote("Sending…");
+  try {
+    const r = await fetch("/api/alert", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(payload),
+    });
+    const out = await r.json().catch(() => ({}));
+    if (r.ok) {
+      alertNote(`Sent by ${out.via} to <b>${to}</b> at ${new Date().toLocaleTimeString()}.`, "safe");
+    } else {
+      alertNote(out.message || `Failed (HTTP ${r.status}).`, "danger");
+    }
+  } catch (e) {
+    alertNote("Could not reach the alert endpoint: " + e.message, "danger");
+  }
+}
+
+/* Called from render(). Fires once on the transition into an alarm state —
+   not on every poll, which at two-second intervals would be a message storm.
+   The server enforces its own cooldown as a second line of defence. */
+function maybeAlert() {
+  if (!live) return;
+  const now = live.status;
+  const entering = now !== "SAFE" && alertLastStatus === "SAFE";
+  alertLastStatus = now;
+  if (!entering || !alertArmed || !alertCfg || !alertCfg.configured) return;
+  sendAlert();
+}
+
+$("#btnArm").addEventListener("click", () => {
+  const to = $("#alertTo").value.trim();
+  if (!alertArmed && !to) { alertNote("Enter a recipient before arming.", "warn"); return; }
+  alertArmed = !alertArmed;
+  try {
+    localStorage.setItem("as_alert_to", to);
+    localStorage.setItem("as_alert_armed", alertArmed ? "1" : "0");
+  } catch (e) { /* private browsing — the setting just won't persist */ }
+  alertNote(alertArmed
+    ? `Armed. <b>${to}</b> will be notified the next time the alarm latches.`
+    : "Disarmed. Nothing will be sent.", alertArmed ? "safe" : null);
+  paintAlertUI();
+});
+
+$("#btnAlertTest").addEventListener("click", () => sendAlert({test: true}));
+
+try {
+  $("#alertTo").value = localStorage.getItem("as_alert_to") || "";
+  alertArmed = localStorage.getItem("as_alert_armed") === "1";
+} catch (e) { /* ignore */ }
+
+/* ===========================================================================
    Wire up the USB control, and be honest when the browser cannot do it
    =========================================================================== */
 $("#btnUsb").hidden = !SERIAL_SUPPORTED;
@@ -2076,4 +2222,5 @@ poll();
 setInterval(poll, 2000);
 drawDiagram();
 gateControls();
+checkAlertConfig();
 </script>

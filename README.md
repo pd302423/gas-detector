@@ -4,6 +4,7 @@ A gas detector that reports its own blind spots — Arduino Uno, MQ-2 sensor, 16
 browser dashboard that reads the board directly over USB.
 
 **Live dashboard:** https://gas-amber-eta.vercel.app
+**Setting it up from scratch:** [docs/SETUP.md](docs/SETUP.md) — every step, in order.
 
 ## Read this first: what an MQ sensor can and cannot do
 
@@ -382,6 +383,8 @@ This is a learning and demonstration project. It is not a certified gas detector
 | `gas_detector_uno/gas_detector_uno.ino` | Uno build with LCD and alarm |
 | `dashboard/index.html` | Dashboard source, and the deployed page. Runs standalone against simulated data |
 | `tools/build_web_page.ps1` | Bakes the dashboard into `web_page.h` and syncs `mq_curves.h` |
+| `dashboard/api/alert.js` | The only server-side code — sends leak alerts. Reads its keys from environment variables, never from the repo |
+| `docs/SETUP.md` | Full setup, from parts list to deployed site with alerts |
 | `docs/ABSTRACT.md` | One-page project abstract |
 | `docs/PRESENTATION.md` | Booth guide: the pitch, the demo sequence, judge Q&A |
 | `docs/WIRING.md` | Printable wiring reference for the Uno build |
