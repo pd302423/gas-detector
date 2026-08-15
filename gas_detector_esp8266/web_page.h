@@ -1,0 +1,2094 @@
+﻿// web_page.h â€” GENERATED FILE, DO NOT EDIT BY HAND.
+//
+// Source:    dashboard/index.html
+// Regenerate: powershell -ExecutionPolicy Bypass -File tools\build_web_page.ps1
+//
+// Stored in PROGMEM (flash), not RAM. Served by handleRoot() via send_P.
+
+#ifndef WEB_PAGE_H
+#define WEB_PAGE_H
+
+#include <Arduino.h>
+
+static const char PAGE_HTML[] PROGMEM = R"PAGE(<title>Air Sentinel</title>
+<style>
+/* ===========================================================================
+   Air Sentinel — dashboard
+   Design language: Apple. System font stack with size-specific tracking,
+   translucent chrome with content scrolling under it, critically damped
+   motion, instant press feedback, and full reduced-motion / reduced-
+   transparency / high-contrast support.
+   =========================================================================== */
+
+/* --- Tokens: light is the base, dark redefines only what changes ---------- */
+:root {
+  --bg:            #f2f2f7;
+  --bg-elev:       #ffffff;
+  --bg-sunken:     #e9e9ee;
+  --chrome:        rgba(242, 242, 247, 0.72);
+  --chrome-edge:   rgba(255, 255, 255, 0.55);
+  --fill:          rgba(120, 120, 128, 0.12);
+  --fill-strong:   rgba(120, 120, 128, 0.20);
+  --line:          rgba(60, 60, 67, 0.13);
+  --text:          #1c1c1e;
+  --text-2:        #3c3c43;
+  --text-3:        rgba(60, 60, 67, 0.60);
+  --accent:        #0071e3;
+  --safe:          #248a3d;
+  --safe-bg:       rgba(52, 199, 89, 0.14);
+  --warn:          #b25000;
+  --warn-bg:       rgba(255, 159, 10, 0.16);
+  --danger:        #d70015;
+  --danger-bg:     rgba(255, 59, 48, 0.14);
+  --shadow-sm:     0 1px 2px rgba(0,0,0,.05), 0 4px 14px rgba(0,0,0,.05);
+  --shadow-lg:     0 2px 6px rgba(0,0,0,.06), 0 18px 44px rgba(0,0,0,.10);
+  --radius:        18px;
+  --radius-sm:     11px;
+  --w-pwr:  #d70015; --w-gnd:  #6e6e73; --w-ana: #b25000;
+  --w-dig:  #7d3ac1; --w-i2c:  #0071e3; --w-out: #248a3d;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:          #000000;
+    --bg-elev:     #1c1c1e;
+    --bg-sunken:   #131315;
+    --chrome:      rgba(20, 20, 22, 0.72);
+    --chrome-edge: rgba(255, 255, 255, 0.10);
+    --fill:        rgba(120, 120, 128, 0.20);
+    --fill-strong: rgba(120, 120, 128, 0.32);
+    --line:        rgba(84, 84, 88, 0.42);
+    --text:        #f5f5f7;
+    --text-2:      #e3e3e8;
+    --text-3:      rgba(235, 235, 245, 0.58);
+    --accent:      #0a84ff;
+    --safe:        #30d158; --safe-bg:   rgba(48, 209, 88, 0.16);
+    --warn:        #ff9f0a; --warn-bg:   rgba(255, 159, 10, 0.18);
+    --danger:      #ff453a; --danger-bg: rgba(255, 69, 58, 0.18);
+    --shadow-sm:   0 1px 2px rgba(0,0,0,.5);
+    --shadow-lg:   0 2px 8px rgba(0,0,0,.5), 0 20px 48px rgba(0,0,0,.45);
+    --w-pwr: #ff453a; --w-gnd: #98989d; --w-ana: #ff9f0a;
+    --w-dig: #bf5af2; --w-i2c: #0a84ff; --w-out: #30d158;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg:#000; --bg-elev:#1c1c1e; --bg-sunken:#131315;
+  --chrome:rgba(20,20,22,.72); --chrome-edge:rgba(255,255,255,.10);
+  --fill:rgba(120,120,128,.20); --fill-strong:rgba(120,120,128,.32);
+  --line:rgba(84,84,88,.42);
+  --text:#f5f5f7; --text-2:#e3e3e8; --text-3:rgba(235,235,245,.58);
+  --accent:#0a84ff;
+  --safe:#30d158; --safe-bg:rgba(48,209,88,.16);
+  --warn:#ff9f0a; --warn-bg:rgba(255,159,10,.18);
+  --danger:#ff453a; --danger-bg:rgba(255,69,58,.18);
+  --shadow-sm:0 1px 2px rgba(0,0,0,.5);
+  --shadow-lg:0 2px 8px rgba(0,0,0,.5), 0 20px 48px rgba(0,0,0,.45);
+  --w-pwr:#ff453a; --w-gnd:#98989d; --w-ana:#ff9f0a;
+  --w-dig:#bf5af2; --w-i2c:#0a84ff; --w-out:#30d158;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 400 100%/1.5 -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        system-ui, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  padding-bottom: 72px;
+}
+
+/* --- Type scale: tracking is size-specific, never one value for all ------- */
+h1, h2, h3 { margin: 0; font-weight: 600; }
+h1 { font-size: clamp(1.7rem, 4vw, 2.3rem); line-height: 1.08; letter-spacing: -0.021em; }
+h2 { font-size: 1.32rem; line-height: 1.2;  letter-spacing: -0.014em; }
+h3 { font-size: 1.02rem; line-height: 1.3;  letter-spacing: -0.006em; }
+.eyebrow {
+  font-size: .72rem; font-weight: 600; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--text-3);
+}
+.sub { color: var(--text-3); font-size: .9rem; letter-spacing: .002em; }
+.num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+
+/* Raw instrument values get the monospaced voice; interpreted values keep the
+   system face, so you can tell a measurement from an inference at a glance. */
+#chain dd, #constRows td.n, #calFacts dd {
+  font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .98rem; letter-spacing: -.01em;
+}
+
+:focus-visible { outline: 2.5px solid var(--accent); outline-offset: 2px; border-radius: 9px; }
+:focus:not(:focus-visible) { outline: none; }
+
+/* --- Chrome: translucent, content scrolls under -------------------------- */
+.nav {
+  position: sticky; top: 0; z-index: 50;
+  background: var(--chrome);
+  backdrop-filter: saturate(180%) blur(22px);
+  -webkit-backdrop-filter: saturate(180%) blur(22px);
+  border-bottom: 1px solid var(--line);
+  box-shadow: inset 0 1px 0 var(--chrome-edge);
+}
+.nav-in {
+  max-width: 1120px; margin: 0 auto; padding: 11px 20px;
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+}
+.brand { display: flex; align-items: center; gap: 9px; font-weight: 600; letter-spacing: -.01em; }
+.dot {
+  width: 9px; height: 9px; border-radius: 50%; background: var(--safe);
+  box-shadow: 0 0 0 4px var(--safe-bg);
+}
+.dot.WARNING { background: var(--warn); box-shadow: 0 0 0 4px var(--warn-bg); }
+.dot.DANGER  { background: var(--danger); box-shadow: 0 0 0 4px var(--danger-bg); animation: breathe 1.4s ease-in-out infinite; }
+@keyframes breathe { 50% { opacity: .35; } }
+
+/* Segmented control — the sliding pill is critically damped, no overshoot */
+.seg {
+  display: flex; position: relative; padding: 2px; gap: 2px;
+  background: var(--fill); border-radius: 10px; margin-left: auto;
+  overflow-x: auto; scrollbar-width: none; max-width: 100%;
+}
+.seg::-webkit-scrollbar { display: none; }
+.seg button {
+  position: relative; z-index: 1; border: 0; background: none; cursor: pointer;
+  font: inherit; font-size: .855rem; font-weight: 500; color: var(--text-2);
+  padding: 6px 13px; border-radius: 8px; white-space: nowrap;
+  transition: color .18s ease, transform .1s ease-out;
+}
+.seg button[aria-selected="true"] { color: var(--text); font-weight: 600; }
+.seg button:active { transform: scale(.96); }
+.seg-pill {
+  position: absolute; z-index: 0; top: 2px; bottom: 2px; left: 0;
+  background: var(--bg-elev); border-radius: 8px; box-shadow: var(--shadow-sm);
+  transition: transform .34s cubic-bezier(.32,.72,0,1), width .34s cubic-bezier(.32,.72,0,1);
+}
+.pill {
+  font-size: .74rem; font-weight: 600; padding: 3px 9px; border-radius: 20px;
+  background: var(--fill); color: var(--text-3); letter-spacing: .01em;
+}
+.pill.live { background: var(--safe-bg); color: var(--safe); }
+.pill.demo { background: var(--warn-bg); color: var(--warn); }
+.pill.lost { background: var(--danger-bg); color: var(--danger); }
+
+/* --- Layout -------------------------------------------------------------- */
+main { max-width: 1120px; margin: 0 auto; padding: 26px 20px 0; }
+.panel[hidden] { display: none; }
+.panel { animation: fade .28s ease both; }
+@keyframes fade { from { opacity: 0; transform: translateY(6px); } }
+.grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.card {
+  background: var(--bg-elev); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow-sm);
+}
+.card.wide { grid-column: 1 / -1; }
+.card-h { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.stack { display: grid; gap: 16px; }
+.mt { margin-top: 16px; }
+
+/* --- Hero status --------------------------------------------------------- */
+.hero {
+  border-radius: 24px; padding: 26px; display: flex; gap: 26px; align-items: center;
+  flex-wrap: wrap; border: 1px solid var(--line); box-shadow: var(--shadow-lg);
+  background: var(--bg-elev);
+}
+.hero.SAFE    { background: linear-gradient(160deg, var(--safe-bg), var(--bg-elev) 62%); }
+.hero.WARNING { background: linear-gradient(160deg, var(--warn-bg), var(--bg-elev) 62%); }
+.hero.DANGER  { background: linear-gradient(160deg, var(--danger-bg), var(--bg-elev) 58%); }
+.gauge { flex: 0 0 auto; position: relative; width: 168px; height: 168px; }
+.gauge svg { transform: rotate(-90deg); overflow: visible; }
+.gauge-track { stroke: var(--fill-strong); }
+.gauge-arc { transition: stroke-dashoffset .55s cubic-bezier(.32,.72,0,1), stroke .35s ease; }
+.gauge-mid {
+  position: absolute; inset: 0; display: grid; place-content: center; text-align: center;
+}
+.gauge-mid b { font-size: 2.05rem; font-weight: 600; letter-spacing: -.03em; line-height: 1; display: block; }
+.gauge-mid span { font-size: .7rem; color: var(--text-3); letter-spacing: .06em; text-transform: uppercase; }
+.hero-body { flex: 1 1 240px; min-width: 220px; }
+.state {
+  font-size: clamp(1.9rem, 5.4vw, 2.7rem); font-weight: 700;
+  letter-spacing: -.028em; line-height: 1.02;
+}
+.SAFE .state { color: var(--safe); } .WARNING .state { color: var(--warn); } .DANGER .state { color: var(--danger); }
+
+/* --- Gas rows ------------------------------------------------------------ */
+.gas { padding: 15px 0; border-top: 1px solid var(--line); }
+.gas:first-child { border-top: 0; padding-top: 2px; }
+.gas-top { display: flex; align-items: baseline; gap: 10px; }
+.gas-name { font-weight: 600; font-size: 1.02rem; letter-spacing: -.005em; }
+.gas-val { margin-left: auto; font-size: 1.28rem; font-weight: 600; letter-spacing: -.018em; }
+.gas-unit { font-size: .78rem; color: var(--text-3); font-weight: 500; }
+.meter {
+  position: relative; height: 7px; border-radius: 4px; background: var(--fill);
+  margin-top: 10px; overflow: hidden;
+}
+.meter i {
+  position: absolute; inset: 0 auto 0 0; border-radius: 4px; display: block;
+  transition: width .5s cubic-bezier(.32,.72,0,1), background .3s ease;
+}
+.ticks { position: relative; height: 14px; font-size: .66rem; color: var(--text-3); }
+.ticks span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+.tag {
+  font-size: .68rem; font-weight: 700; letter-spacing: .05em; padding: 2px 8px;
+  border-radius: 20px; text-transform: uppercase;
+}
+.tag.SAFE { background: var(--safe-bg); color: var(--safe); }
+.tag.WARNING { background: var(--warn-bg); color: var(--warn); }
+.tag.DANGER { background: var(--danger-bg); color: var(--danger); }
+
+/* --- Readouts ------------------------------------------------------------ */
+.kv { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 14px 18px; }
+.kv > div { min-width: 0; }
+.kv dt { font-size: .7rem; color: var(--text-3); letter-spacing: .04em; text-transform: uppercase; margin-bottom: 3px; }
+.kv dd { margin: 0; font-size: 1.06rem; font-weight: 600; letter-spacing: -.012em; overflow-wrap: anywhere; }
+.kv dd small { font-size: .7rem; font-weight: 500; color: var(--text-3); letter-spacing: 0; }
+
+/* --- Tables -------------------------------------------------------------- */
+.tw { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -4px; padding: 0 4px; }
+table { border-collapse: collapse; width: 100%; font-size: .88rem; min-width: 480px; }
+th, td { text-align: left; padding: 9px 12px 9px 0; border-bottom: 1px solid var(--line); }
+th { font-size: .7rem; text-transform: uppercase; letter-spacing: .05em; color: var(--text-3); font-weight: 600; }
+td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; padding-right: 12px; }
+tbody tr:last-child td { border-bottom: 0; }
+tr.me td { background: var(--fill); }
+tr.me td:first-child { border-radius: 8px 0 0 8px; }
+tr.me td:last-child  { border-radius: 0 8px 8px 0; }
+
+/* --- Buttons ------------------------------------------------------------- */
+.btn {
+  font: inherit; font-size: .88rem; font-weight: 500; cursor: pointer;
+  border: 1px solid var(--line); background: var(--bg-elev); color: var(--text);
+  padding: 8px 15px; border-radius: 10px;
+  transition: transform .1s ease-out, background .18s ease;
+}
+.btn:hover { background: var(--fill); }
+.btn:active { transform: scale(.965); }
+.btn.primary { background: var(--accent); border-color: transparent; color: #fff; }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.danger { color: var(--danger); }
+.row { display: flex; gap: 9px; flex-wrap: wrap; align-items: center; }
+
+/* --- Chart --------------------------------------------------------------- */
+.chart { width: 100%; height: 260px; display: block; overflow: visible; }
+.chart .grid-l { stroke: var(--line); stroke-width: 1; }
+.chart .thr { stroke-width: 1.5; stroke-dasharray: 5 4; fill: none; }
+.chart text { font-size: 10px; fill: var(--text-3); }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: .78rem; color: var(--text-3); }
+.legend i { display: inline-block; width: 11px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+
+/* --- Wiring diagram ------------------------------------------------------ */
+.diagram { width: 100%; height: auto; display: block; }
+.diagram .board { fill: var(--bg-sunken); stroke: var(--line); stroke-width: 1.5; }
+.diagram .board-t { font-weight: 650; font-size: 13px; fill: var(--text); letter-spacing: -.2px; }
+.diagram .board-s { font-size: 10.5px; fill: var(--text-3); }
+.diagram .chip { fill: var(--bg-elev); stroke: var(--line); stroke-width: 1; }
+.diagram .chip-t { font-size: 11px; font-weight: 600; fill: var(--text); }
+.diagram .wire { fill: none; stroke-width: 2.4; stroke-linecap: round; transition: stroke-width .15s ease, opacity .15s ease; }
+.diagram g.link { cursor: pointer; }
+.diagram g.link:hover .wire, .diagram g.link.on .wire { stroke-width: 4.5; }
+.diagram.dim g.link:not(.on) { opacity: .22; }
+.pwr{stroke:var(--w-pwr)} .gnd{stroke:var(--w-gnd)} .ana{stroke:var(--w-ana)}
+.dig{stroke:var(--w-dig)} .i2c{stroke:var(--w-i2c)} .out{stroke:var(--w-out)}
+.swatch { display: inline-block; width: 12px; height: 12px; border-radius: 4px; vertical-align: -2px; margin-right: 6px; }
+.note {
+  border-left: 2.5px solid var(--accent); padding: 2px 0 2px 14px;
+  color: var(--text-2); font-size: .89rem;
+}
+.note.warn { border-color: var(--warn); }
+.note.danger { border-color: var(--danger); }
+.cap { min-height: 2.6em; font-size: .87rem; color: var(--text-2); }
+.cap b { color: var(--text); }
+
+/* --- Prose --------------------------------------------------------------- */
+.prose { max-width: 66ch; }
+.prose p { margin: 0 0 12px; color: var(--text-2); font-size: .94rem; }
+.prose p:last-child { margin-bottom: 0; }
+.prose strong { color: var(--text); font-weight: 600; }
+code {
+  font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
+  font-size: .85em; background: var(--fill); padding: 1.5px 6px; border-radius: 5px;
+}
+
+/* --- Accessibility preferences ------------------------------------------- */
+@media (prefers-reduced-transparency: reduce) {
+  .nav { background: var(--bg); backdrop-filter: none; -webkit-backdrop-filter: none; }
+}
+@media (prefers-contrast: more) {
+  .card, .hero { border-color: var(--text-3); }
+  .nav { background: var(--bg); backdrop-filter: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important;
+    transition-duration: .12s !important; }
+  .panel { animation: none; }
+  .dot.DANGER { animation: none; }
+}
+@media (max-width: 640px) {
+  .nav-in { padding: 9px 14px; gap: 9px; }
+  .seg { margin-left: 0; order: 3; width: 100%; }
+  main { padding: 18px 14px 0; }
+  .card { padding: 16px; }
+  .hero { padding: 20px; gap: 18px; }
+  .gauge { width: 130px; height: 130px; }
+}
+</style>
+
+<header class="nav">
+  <div class="nav-in">
+    <div class="brand"><span class="dot" id="navDot"></span> Air Sentinel</div>
+    <span class="pill" id="connPill">connecting</span>
+    <button class="btn primary" id="btnUsb" hidden>Connect detector</button>
+    <div class="seg" role="tablist" id="tabs">
+      <div class="seg-pill" id="segPill"></div>
+      <button role="tab" aria-selected="true"  data-p="live">Live</button>
+      <button role="tab" aria-selected="false" data-p="safety">Safety</button>
+      <button role="tab" aria-selected="false" data-p="history">History</button>
+      <button role="tab" aria-selected="false" data-p="sensor">Sensor</button>
+      <button role="tab" aria-selected="false" data-p="hardware">Wiring</button>
+      <button role="tab" aria-selected="false" data-p="system">System</button>
+      <button role="tab" aria-selected="false" data-p="about">Limits</button>
+      <button role="tab" aria-selected="false" data-p="roadmap">Roadmap</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- ================= LIVE ================= -->
+  <section class="panel stack" id="p-live">
+    <div class="hero SAFE" id="hero">
+      <div class="gauge">
+        <svg viewBox="0 0 168 168" width="168" height="168" aria-hidden="true">
+          <circle class="gauge-track" cx="84" cy="84" r="70" fill="none" stroke-width="13"/>
+          <circle class="gauge-arc" id="arc" cx="84" cy="84" r="70" fill="none" stroke-width="13"
+                  stroke-linecap="round" stroke-dasharray="439.8" stroke-dashoffset="439.8"/>
+        </svg>
+        <div class="gauge-mid"><b class="num" id="gaugePct">0%</b><span>of danger</span></div>
+      </div>
+      <div class="hero-body">
+        <div class="eyebrow" id="heroModel">MQ-2 · combustible gas</div>
+        <div class="state" id="heroState">SAFE</div>
+        <p class="sub" id="heroDetail" style="margin:6px 0 0">Waiting for the first reading…</p>
+        <div class="row" style="margin-top:14px">
+          <button class="btn" id="btnMute">Silence buzzer</button>
+          <button class="btn" id="btnLeak" hidden>Simulate leak</button>
+        </div>
+        <p class="sub" id="usbNote" hidden style="margin:12px 0 0;max-width:52ch"></p>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card wide">
+        <div class="card-h">
+          <div><h2>Gas estimates</h2>
+            <div class="sub">Every row is the same measurement re-interpreted. At most one is true.</div></div>
+          <span class="tag SAFE" id="worstTag">SAFE</span>
+        </div>
+        <div id="gasList"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-h"><h2>Signal chain</h2><span class="sub">raw → ppm</span></div>
+        <dl class="kv" id="chain"></dl>
+      </div>
+
+      <div class="card">
+        <div class="card-h"><h2>Last 5 minutes</h2><span class="sub" id="sparkLbl"></span></div>
+        <svg class="chart" id="spark" style="height:180px" viewBox="0 0 600 180" preserveAspectRatio="none"></svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SAFETY ================= -->
+  <section class="panel stack" id="p-safety" hidden>
+    <div class="card wide" id="verdictCard">
+      <div class="card-h"><div class="eyebrow">Occupancy assessment</div></div>
+      <h1 id="verdictTitle">Safe for normal occupancy</h1>
+      <p class="sub mt" id="verdictWhy" style="max-width:60ch"></p>
+      <dl class="kv mt" id="verdictFacts"></dl>
+      <p class="note danger mt"><strong>A "safe" verdict here does not mean the air is safe.</strong>
+        It means nothing this sensor can detect is above threshold. The MQ-2 is blind to
+        particulates, ozone, nitrogen dioxide, sulphur dioxide, oxygen depletion, and
+        carbon monoxide below 200&nbsp;ppm.</p>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="card-h"><div><h2>Combustible Gas Index</h2>
+          <div class="sub">Sensor-derived. Not the CPCB AQI.</div></div></div>
+        <div class="gauge" style="width:100%;height:auto;display:block">
+          <div class="state num" id="cgiValue" style="font-size:3.4rem">0</div>
+          <div class="tag" id="cgiBand" style="font-size:.8rem">Good</div>
+        </div>
+        <div class="meter mt" style="height:11px"><i id="cgiBar"></i></div>
+        <p class="sub mt" id="cgiWhy"></p>
+      </div>
+
+      <div class="card">
+        <div class="card-h"><div><h2>What a real AQI needs</h2>
+          <div class="sub">and what this device provides</div></div></div>
+        <div class="tw"><table style="min-width:340px">
+          <thead><tr><th>Pollutant</th><th>Instrument required</th><th class="n">Here?</th></tr></thead>
+          <tbody id="aqiNeeds"></tbody></table></div>
+      </div>
+
+      <div class="card wide">
+        <div class="card-h"><div><h2>CPCB Air Quality Index</h2>
+          <div class="sub">India's national scale — the reference this project is measured against, not one it can produce</div></div></div>
+        <div id="cpcbStrip" style="display:flex;border-radius:10px;overflow:hidden;margin-bottom:14px"></div>
+        <div class="tw"><table>
+          <thead><tr><th class="n">Index</th><th>Band</th><th>Health effect</th></tr></thead>
+          <tbody id="cpcbRows"></tbody></table></div>
+        <p class="note mt">The CPCB AQI is computed from PM2.5, PM10, O₃, NO₂, SO₂, CO, NH₃ and Pb,
+          averaged over 8 or 24 hours by reference-grade monitors. A single MQ-2 measures none of them.
+          The index on the left borrows CPCB's band names and colours to make a sensor reading legible —
+          the scale is CPCB's, the numbers are this project's.</p>
+      </div>
+
+      <div class="card wide">
+        <div class="card-h"><div><h2>Carbon monoxide: what this sensor cannot see</h2>
+          <div class="sub">Physiological effect against the MQ-2's own detection floor</div></div></div>
+        <svg class="chart" id="coLadder" style="height:150px" viewBox="0 0 900 150" preserveAspectRatio="none"></svg>
+        <div class="tw mt"><table>
+          <thead><tr><th class="n">Concentration</th><th>Effect on a person</th><th class="n">MQ-2</th></tr></thead>
+          <tbody id="coRows"></tbody></table></div>
+        <p class="note danger mt">Every concentration at which carbon monoxide is dangerous lies at or
+          below this sensor's 200&nbsp;ppm floor. By the time an MQ-2 can see CO at all, a person in that
+          room already has a headache. <strong>Use an MQ-7</strong> — its 20&nbsp;ppm floor sits below the
+          35&nbsp;ppm exposure limit — or a dedicated electrochemical cell.</p>
+      </div>
+
+      <div class="card wide">
+        <div class="card-h"><div><h2>Exposure limits in use</h2>
+          <div class="sub">Published occupational values, and where this sensor's thresholds come from</div></div></div>
+        <div class="tw"><table>
+          <thead><tr><th>Gas</th><th>Hazard</th><th class="n">8-h limit</th><th class="n">Ceiling / IDLH</th>
+            <th class="n">LEL</th><th class="n">Alarms at</th></tr></thead>
+          <tbody id="exposureRows"></tbody></table></div>
+        <p class="note mt">Combustibles alarm at <strong>10% of the Lower Explosive Limit</strong>, the
+          standard industrial convention — it leaves a factor-of-ten margin before the atmosphere can
+          ignite. Toxics alarm on health limits instead. Permissible exposure time uses the
+          time-weighted-average relation <code>minutes = 480 × limit ÷ concentration</code>, which is
+          occupational <em>planning</em> arithmetic and not an evacuation instrument.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= HISTORY ================= -->
+  <section class="panel stack" id="p-history" hidden>
+    <div class="card wide">
+      <div class="card-h">
+        <div><h2>Concentration history</h2>
+          <div class="sub" id="histLbl">Rolling buffer, newest on the right.</div></div>
+        <div class="row">
+          <select class="btn" id="histGas"></select>
+          <button class="btn" id="histScale">Log scale</button>
+        </div>
+      </div>
+      <svg class="chart" id="chart" viewBox="0 0 900 300" preserveAspectRatio="none"></svg>
+      <div class="legend mt">
+        <span><i style="background:var(--accent)"></i>ppm</span>
+        <span><i style="background:var(--warn)"></i>warning threshold</span>
+        <span><i style="background:var(--danger)"></i>danger threshold</span>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="card"><div class="card-h"><h2>Session statistics</h2></div><dl class="kv" id="stats"></dl></div>
+      <div class="card"><div class="card-h"><h2>Event log</h2><span class="sub">state changes only</span></div>
+        <div class="tw"><table><tbody id="events"><tr><td class="sub">No state changes yet.</td></tr></tbody></table></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SENSOR ================= -->
+  <section class="panel stack" id="p-sensor" hidden>
+    <div class="grid">
+      <div class="card wide">
+        <div class="card-h"><div><h2 id="senseTitle">MQ-2</h2>
+          <div class="sub" id="senseNote"></div></div></div>
+        <dl class="kv" id="senseFacts"></dl>
+      </div>
+      <div class="card wide">
+        <div class="card-h"><div><h2>Response curves in use</h2>
+          <div class="sub">ppm = a · (Rs/R₀)<sup>b</sup> — least-squares fits to the datasheet graphs</div></div></div>
+        <div class="tw"><table>
+          <thead><tr><th>Gas</th><th class="n">a</th><th class="n">b</th>
+            <th class="n">Valid band</th><th class="n">Warn</th><th class="n">Danger</th>
+            <th class="n">Live</th></tr></thead>
+          <tbody id="curveRows"></tbody></table></div>
+        <p class="note mt">The datasheet only draws each curve across a limited band, so the fit is only meaningful inside it. Readings are clamped to that band, and a gas whose warning level sits <em>below</em> the sensor's own floor is shown for context but never allowed to drive the alarm — that sensor genuinely cannot resolve it.</p>
+      </div>
+      <div class="card wide">
+        <div class="card-h"><div><h2>The whole MQ family</h2>
+          <div class="sub">What each part is for. Your selection is highlighted.</div></div></div>
+        <div class="tw"><table>
+          <thead><tr><th>Sensor</th><th>Primary target</th><th>Also responds to</th>
+            <th class="n">Range</th><th class="n">Clean-air Rs/R₀</th></tr></thead>
+          <tbody id="familyRows"></tbody></table></div>
+      </div>
+      <div class="card wide">
+        <div class="card-h"><div><h2>Why these alarm thresholds</h2></div></div>
+        <div class="tw"><table>
+          <thead><tr><th>Gas</th><th class="n">Warning</th><th class="n">Danger</th><th>Basis</th></tr></thead>
+          <tbody id="threshRows"></tbody></table></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= WIRING ================= -->
+  <section class="panel stack" id="p-hardware" hidden>
+    <div class="card wide">
+      <div class="card-h">
+        <div><h2>Wiring map</h2>
+          <div class="sub">Tap any wire to isolate it. Every connection is listed below the diagram.</div></div>
+        <div class="seg" id="boardSeg" style="margin-left:0">
+          <div class="seg-pill" id="boardPill"></div>
+          <button role="tab" aria-selected="true"  data-b="uno">Arduino Uno</button>
+          <button role="tab" aria-selected="false" data-b="esp">ESP8266 (v2)</button>
+        </div>
+      </div>
+      <svg class="diagram" id="diagram" viewBox="0 0 980 640"></svg>
+      <p class="cap" id="diagCap"><b>Hover or tap a wire</b> to see what it carries and why.</p>
+      <div class="legend mt">
+        <span><i class="swatch" style="background:var(--w-pwr)"></i>5 V supply</span>
+        <span><i class="swatch" style="background:var(--w-gnd)"></i>Ground</span>
+        <span><i class="swatch" style="background:var(--w-ana)"></i>Analog signal</span>
+        <span><i class="swatch" style="background:var(--w-dig)"></i>Digital in</span>
+        <span><i class="swatch" style="background:var(--w-i2c)"></i>I²C bus</span>
+        <span><i class="swatch" style="background:var(--w-out)"></i>Alarm out</span>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card wide" id="dividerCard" hidden>
+        <div class="card-h"><div><h2>The divider is not optional</h2>
+          <div class="sub">ESP8266 build only</div></div></div>
+        <div class="row" style="align-items:flex-start;gap:24px">
+          <svg viewBox="0 0 280 220" width="240" height="190" class="diagram" style="flex:0 0 auto;max-width:240px">
+            <text x="4" y="16" class="board-s">MQ AOUT (0–5 V)</text>
+            <path d="M14 30 v34" stroke="var(--w-ana)" stroke-width="2.4" fill="none"/>
+            <rect x="0" y="64" width="28" height="46" rx="5" fill="var(--bg-elev)" stroke="var(--text-3)" stroke-width="1.6"/>
+            <text x="36" y="92" class="chip-t">68 kΩ</text>
+            <path d="M14 110 v30" stroke="var(--w-ana)" stroke-width="2.4" fill="none"/>
+            <circle cx="14" cy="140" r="4" fill="var(--w-ana)"/>
+            <path d="M14 140 H150" stroke="var(--w-ana)" stroke-width="2.4" fill="none"/>
+            <text x="156" y="137" class="chip-t">A0</text>
+            <text x="156" y="152" class="board-s">2.98 V max</text>
+            <path d="M14 140 v30" stroke="var(--w-ana)" stroke-width="2.4" fill="none"/>
+            <rect x="0" y="170" width="28" height="46" rx="5" fill="var(--bg-elev)" stroke="var(--text-3)" stroke-width="1.6"/>
+            <text x="36" y="198" class="chip-t">100 kΩ</text>
+            <path d="M14 216 v10 M2 226 H26 M6 232 H22 M10 238 H18" stroke="var(--w-gnd)" stroke-width="2.2" fill="none"/>
+          </svg>
+          <div class="prose" style="flex:1 1 300px">
+            <p>The MQ heater needs a real <strong>5 V</strong>, so its analog output swings the full 0–5 V. The ESP8266's <code>A0</code> tolerates about <strong>3.3 V</strong> on a NodeMCU board (and only 1.0 V on the bare ESP-12E pin). Connecting them directly damages the ADC.</p>
+            <p>68 kΩ / 100 kΩ scales 5.00 V down to <strong>2.98 V</strong>. That is why <code>ADC_FULLSCALE_VOLTS</code> is <code>5.54</code> in <code>config.h</code>. Different resistors? Recompute as <code>3.3 / (R2 / (R1 + R2))</code>.</p>
+            <p class="note danger">The Arduino Uno build needs none of this — it is 5 V throughout, which is why it is the safer first build.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card wide">
+        <div class="card-h"><div><h2>Connection list</h2>
+          <div class="sub" id="connSub"></div></div></div>
+        <div class="tw"><table>
+          <thead><tr><th>From</th><th>To</th><th>Carries</th><th>Why</th></tr></thead>
+          <tbody id="connRows"></tbody></table></div>
+      </div>
+
+      <div class="card wide">
+        <div class="card-h"><div><h2>Your LCD, decoded</h2>
+          <div class="sub">16 parallel pins in, 4 I²C pins out</div></div></div>
+        <div class="row" style="align-items:flex-start;gap:24px">
+          <div class="tw" style="flex:1 1 320px">
+            <table style="min-width:320px"><thead><tr><th class="n">Pin</th><th>Label</th><th>Function</th></tr></thead>
+            <tbody id="lcdRows"></tbody></table>
+          </div>
+          <div class="prose" style="flex:1 1 280px">
+            <p>Those sixteen pins are a standard <strong>HD44780 16×2 character LCD</strong>. The four-pin module you soldered on is a <strong>PCF8574 I²C backpack</strong> — it drives all sixteen for you over two wires.</p>
+            <p>That was the right call. Driving the panel directly in 4-bit mode costs six GPIOs, and an ESP-12E does not have six to spare once the sensor, buzzer and LED are attached.</p>
+            <p>Its address is <code>0x27</code> (PCF8574T) or <code>0x3F</code> (PCF8574AT). The firmware probes both, so you never need to know which you have.</p>
+            <p class="note warn">Blank screen or two rows of solid blocks is almost always <strong>contrast</strong>. Turn the blue trimmer on the back of the backpack before suspecting anything else.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SYSTEM ================= -->
+  <section class="panel stack" id="p-system" hidden>
+    <div class="grid">
+      <div class="card"><div class="card-h"><h2>Controller</h2></div><dl class="kv" id="sysCore"></dl></div>
+      <div class="card"><div class="card-h"><h2>Network</h2></div><dl class="kv" id="sysNet"></dl></div>
+      <div class="card wide">
+        <div class="card-h"><div><h2>Calibration</h2>
+          <div class="sub">R₀ is the anchor for every number on this page</div></div></div>
+        <dl class="kv" id="calFacts"></dl>
+        <p class="note warn mt">Recalibrate only in <strong>clean outdoor air</strong>, and only after the sensor has had 24–48 hours of continuous power. Calibrating in a kitchen bakes the contamination into the baseline, and every reading afterwards is quietly wrong.</p>
+        <div class="row mt" id="ctrlRow">
+          <button class="btn primary" id="btnCal">Recalibrate R₀</button>
+          <button class="btn" id="btnBuzz">Test buzzer</button>
+          <button class="btn" id="btnCsv">Download history CSV</button>
+        </div>
+        <p class="sub mt" id="ctrlNote" hidden></p>
+      </div>
+      <div class="card wide">
+        <div class="card-h"><div><h2>Firmware constants</h2>
+          <div class="sub">as compiled into the device</div></div></div>
+        <div class="tw"><table><thead><tr><th>Constant</th><th class="n">Value</th><th>Meaning</th></tr></thead>
+          <tbody id="constRows"></tbody></table></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= ROADMAP ================= -->
+  <section class="panel stack" id="p-roadmap" hidden>
+    <div class="card wide">
+      <div class="card-h"><div class="eyebrow">Where this goes next</div></div>
+      <h1>Every gap here has a part number.</h1>
+      <div class="prose mt">
+        <p>The Limits tab says what this instrument cannot do. This one says what it would take to
+          fix each of those things — with the specific sensor, what it unlocks, and what it costs.
+          Some of it is a shopping list. The most interesting items need no new hardware at all.</p>
+      </div>
+    </div>
+
+    <div class="card wide">
+      <div class="card-h">
+        <div><h2>Air Quality Index coverage</h2>
+          <div class="sub">The eight pollutants CPCB's index is computed from, and how many this build can actually measure</div></div>
+        <div class="seg" id="stageSeg" style="margin-left:0">
+          <div class="seg-pill" id="stagePill"></div>
+          <button role="tab" aria-selected="true"  data-s="0">Now</button>
+          <button role="tab" aria-selected="false" data-s="1">v2</button>
+          <button role="tab" aria-selected="false" data-s="2">v3</button>
+        </div>
+      </div>
+      <p class="sub" id="stageWhat"></p>
+      <div class="grid mt" id="aqiTiles" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px"></div>
+      <p class="note danger mt"><strong>The ceiling is three of eight, and that is the honest end of it.</strong>
+        Ozone, nitrogen dioxide and sulphur dioxide need UV-photometric, chemiluminescence and
+        UV-fluorescence analysers; lead needs laboratory analysis of filter samples. Those four
+        cost more than every other part of this project combined, and no hobby sensor substitutes
+        for them. What v3 does buy is <strong>PM2.5 and PM10</strong> — the two that dominate the
+        index in most Indian cities.</p>
+    </div>
+
+    <div class="card wide">
+      <div class="card-h"><div><h2>Sensors worth adding</h2>
+        <div class="sub">Ordered by how much each one fixes, not by price</div></div></div>
+      <div class="tw"><table>
+        <thead><tr><th>Part</th><th>Measures</th><th>How</th><th>What it fixes</th><th class="n">₹ approx</th></tr></thead>
+        <tbody id="sensorRows"></tbody></table></div>
+      <p class="note mt">"How" matters more than the price column. <strong>NDIR and electrochemical
+        sensors are genuinely selective</strong> — they respond to one compound by physical
+        principle, not by curve-fitting a broadband signal. Adding one of those changes the kind of
+        claim this instrument can make, which no number of extra MQ sensors does on its own.</p>
+    </div>
+
+    <div class="card wide">
+      <div class="card-h"><div><h2>Metrics from the data already here</h2>
+        <div class="sub">No new hardware — these come from the measurement the sensor already takes</div></div></div>
+      <div class="tw"><table>
+        <thead><tr><th>Metric</th><th>How it's derived</th><th>Why it's worth having</th></tr></thead>
+        <tbody id="freeRows"></tbody></table></div>
+    </div>
+
+    <div class="card wide">
+      <div class="card-h"><div><h2>Making it trustworthy</h2>
+        <div class="sub">Engineering work, not new sensors</div></div></div>
+      <div class="tw"><table>
+        <thead><tr><th>Improvement</th><th>Problem it solves</th><th class="n">Priority</th></tr></thead>
+        <tbody id="hardenRows"></tbody></table></div>
+      <p class="note danger mt"><strong>Sensor failure detection is the single most important item
+        on this page.</strong> Right now an open circuit on the sensor reads as infinite resistance —
+        which the maths interprets as perfectly clean air. A detector that reports "all clear"
+        because it is broken is worse than no detector, and this build cannot currently tell the
+        difference. Checking heater continuity would catch most of it.</p>
+    </div>
+
+    <div class="card wide">
+      <div class="card-h"><div class="eyebrow">The one that changes what the instrument is</div></div>
+      <h2>An array, and a classifier</h2>
+      <div class="prose mt">
+        <p>Everything else on this page adds a measurement. This one removes the limitation the
+          whole project is built around: that a single sensor produces one number and therefore
+          cannot name a gas.</p>
+        <p>Six MQ sensors with different dopings — 2, 3, 4, 6, 7 and 135 — respond to the same gas
+          by <em>different ratios</em>. Butane might drive the MQ-6 hard and the MQ-3 barely at all;
+          ethanol does the reverse. No single sensor can tell them apart, but the <strong>pattern
+          across six of them is gas-specific</strong>. That pattern is a six-dimensional vector, and
+          separating vectors into labelled classes is exactly what a classifier does.</p>
+      </div>
+      <div class="tw mt"><table>
+        <thead><tr><th class="n">Step</th><th>What you build</th><th>The detail that bites</th></tr></thead>
+        <tbody>
+          <tr><td class="n num">1</td><td>Wire six MQ sensors</td>
+            <td>The Uno has six analog pins and A4/A5 are the I²C bus, so only four are free. You need a <strong>CD74HC4067</strong> 16-channel analog multiplexer, or an <strong>ADS1115</strong> 4-channel I²C ADC — which also gets you 16-bit resolution instead of the Uno's 10-bit.</td></tr>
+          <tr><td class="n num">2</td><td>Calibrate each R₀ separately</td>
+            <td>Six independent clean-air baselines, six EEPROM slots. Every sensor also needs its own 24–48 h burn-in.</td></tr>
+          <tr><td class="n num">3</td><td>Collect labelled samples</td>
+            <td>The real work. Expose the array to each target gas repeatedly, at varying concentrations and distances, logging all six Rs/R₀ values per sample. A few hundred samples per gas. The CSV export already on the System tab is where this starts.</td></tr>
+          <tr><td class="n num">4</td><td>Train a classifier</td>
+            <td><strong>k-nearest-neighbours first</strong> — it needs no training step, runs on the Arduino from a stored table, and is easy to explain to a judge. Move to a small neural net only if k-NN's accuracy plateaus.</td></tr>
+          <tr><td class="n num">5</td><td>Report identity <em>with confidence</em></td>
+            <td>Report the distance to the nearest class, not just the label. A sample far from every trained class is an <em>unknown gas</em> — and saying so is the honest answer, exactly as this version says "at most one of these rows is true".</td></tr>
+        </tbody></table></div>
+      <p class="note mt">Normalise each sensor to its own Rs/R₀ before classifying, never raw
+        resistance — absolute resistance varies by a factor of two between two units of the same
+        part number, so a classifier trained on raw ohms learns your specific sensors rather than
+        the gases.</p>
+    </div>
+  </section>
+
+  <!-- ================= LIMITS ================= -->
+  <section class="panel stack" id="p-about" hidden>
+    <div class="card wide">
+      <div class="card-h"><div class="eyebrow">Read this before trusting a number</div></div>
+      <h1>One sensor cannot name the gas.</h1>
+      <div class="prose mt">
+        <p>An MQ sensor is a heated tin-dioxide bead. Its resistance falls when <em>any</em> reducing gas lands on the surface. The output is <strong>one number</strong> — not a spectrum, not a fingerprint.</p>
+        <p>So LPG at 500 ppm, ethanol vapour at 200 ppm, and cigarette smoke can all produce an identical reading. Every gas row on the Live tab is that same single measurement re-interpreted: <em>"if this were LPG, it would be this much."</em> At most one row is physically true, and the sensor does not know which.</p>
+        <p>What this system honestly is: a <strong>reducing-gas alarm</strong> with an estimated concentration and a hazard classification. That is what a certified kitchen gas alarm does, and it is genuinely useful. What it is not is a gas identifier.</p>
+      </div>
+    </div>
+    <div class="card wide">
+      <div class="card-h"><h2>If you need real identification</h2></div>
+      <div class="tw"><table>
+        <thead><tr><th>Approach</th><th>Mechanism</th><th>Effort</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Sensor array + classifier</strong></td>
+            <td>Four to six different MQ types read at once. Each has a different sensitivity ratio to each gas, so the <em>pattern</em> across the array is gas-specific. Train k-NN or a small net on labelled samples.</td>
+            <td>Moderate — this is the competition-grade version</td></tr>
+          <tr><td><strong>Heater cycling</strong></td>
+            <td>Drive one sensor's heater between two temperatures (MQ-7: 5 V/60 s then 1.4 V/90 s). Selectivity shifts with temperature, giving two semi-independent readings from one part.</td>
+            <td>No extra hardware, needs PWM and timing discipline</td></tr>
+          <tr><td><strong>NDIR</strong></td>
+            <td>Infrared absorption at a gas-specific wavelength. Genuinely selective. MH-Z19 for CO₂.</td>
+            <td>Easy — but one gas per sensor</td></tr>
+          <tr><td><strong>Electrochemical cell</strong></td>
+            <td>A gas-specific reaction produces a current proportional to concentration. Factory-calibrated in real ppm.</td>
+            <td>Easy, higher cost per gas</td></tr>
+          <tr><td><strong>PID / GC / spectrometry</strong></td>
+            <td>Actual analytical chemistry. Separates and identifies.</td>
+            <td>Lab equipment</td></tr>
+        </tbody></table></div>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <div class="card-h"><h2>Other things that move the reading</h2></div>
+        <div class="prose">
+          <p><strong>Humidity and temperature</strong> shift the baseline on their own. A muggy afternoon can look like a small leak.</p>
+          <p><strong>Age.</strong> The heater and the sensing layer drift over months. Recalibrate seasonally.</p>
+          <p><strong>Burn-in.</strong> A brand-new sensor drifts for 24–48 hours of continuous power. Readings before that are meaningless.</p>
+          <p><strong>The curve constants</strong> are least-squares fits to a graph printed in a datasheet PDF. Order-of-magnitude accurate — fine for an alarm, not for reporting concentrations as data.</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-h"><h2>Not a life-safety device</h2></div>
+        <div class="prose">
+          <p>This build has no self-test, no sensor-failure detection, no battery backup, and no certification. Its calibration traces back to a curve fit, not a reference gas.</p>
+          <p>For actual protection of a home with an LPG cylinder, buy a <strong>BIS or CE certified alarm</strong>. Build this one to understand how that one works — and keep the certified one on the wall.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+"use strict";
+/* ===========================================================================
+   Data model — mirrors mq_curves.h exactly.
+   =========================================================================== */
+const FAMILY = {
+  2:   {name:"MQ-2",   ratio:9.83, range:"200–10,000 ppm", target:"LPG, propane, butane",
+        also:"Methane, hydrogen, alcohol, smoke, CO", unit:"ppm",
+        note:"General combustible plus smoke. The most common Flying Fish board.",
+        gases:[["LPG",574.25,-2.222,900,1800,200,10000],["Smoke",3616.1,-2.675,500,1000,200,10000],
+               ["CO",36974,-3.109,35,200,200,10000],["H2",987.99,-2.162,2000,4000,200,10000]]},
+  3:   {name:"MQ-3",   ratio:60,   range:"0.05–10 mg/L", target:"Alcohol, ethanol",
+        also:"Benzene, hexane, LPG (weak)", unit:"mg/L",
+        note:"Breathalyser part. Datasheet is in mg/L, not ppm.",
+        gases:[["Alcohol",0.4091,-1.504,0.2,0.5,0.05,10]]},
+  4:   {name:"MQ-4",   ratio:4.4,  range:"300–10,000 ppm", target:"Methane, CNG, PNG",
+        also:"LPG, smoke, alcohol (weak)", unit:"ppm",
+        note:"Piped natural gas. Low alcohol sensitivity.",
+        gases:[["CH4",1012.7,-2.786,2500,5000,300,10000],["LPG",3811.9,-3.113,900,1800,300,10000]]},
+  5:   {name:"MQ-5",   ratio:6.5,  range:"200–10,000 ppm", target:"LPG and natural gas",
+        also:"Alcohol, smoke, hydrogen", unit:"ppm",
+        note:"Dual-purpose domestic gas leak part.",
+        gases:[["LPG",80.897,-2.431,900,1800,200,10000],["CH4",177.65,-2.560,2500,5000,200,10000]]},
+  6:   {name:"MQ-6",   ratio:10,   range:"200–10,000 ppm", target:"LPG, butane, propane",
+        also:"Natural gas, alcohol", unit:"ppm",
+        note:"Best single choice for Indian LPG cylinders.",
+        gases:[["LPG",1009.2,-2.350,900,1800,200,10000],["CH4",2127.2,-2.526,2500,5000,200,10000]]},
+  7:   {name:"MQ-7",   ratio:27,   range:"20–2,000 ppm", target:"Carbon monoxide",
+        also:"Hydrogen, methane", unit:"ppm",
+        note:"Needs the 5 V/60 s + 1.4 V/90 s heater cycle to read accurately.",
+        gases:[["CO",99.042,-1.518,35,200,20,2000]]},
+  8:   {name:"MQ-8",   ratio:70,   range:"100–10,000 ppm", target:"Hydrogen",
+        also:"LPG, CO, alcohol (all weak)", unit:"ppm",
+        note:"The most selective of the common MQ parts.",
+        gases:[["H2",976.97,-1.606,2000,4000,100,10000]]},
+  9:   {name:"MQ-9",   ratio:9.6,  range:"10–1,000 / 100–10,000 ppm", target:"CO plus combustibles",
+        also:"Methane, LPG", unit:"ppm",
+        note:"Dual heater-cycle part, like the MQ-7.",
+        gases:[["CO",599.65,-2.244,35,200,10,1000],["CH4",1000.5,-2.186,2500,5000,100,10000],
+               ["LPG",1000.5,-2.186,900,1800,100,10000]]},
+  135: {name:"MQ-135", ratio:3.6,  range:"10–1,000 ppm", target:"Air quality: NH₃, NOₓ, benzene, CO₂",
+        also:"Alcohol, smoke, sulphides — extremely broad", unit:"ppm",
+        note:"Very sensitive, very unspecific. Treat as a general air-quality index.",
+        gases:[["CO2",110.47,-2.862,1000,5000,10,1000],["NH3",102.20,-2.473,25,300,10,1000],
+               ["Alcohol",77.255,-3.180,100,1000,10,1000],["Benzene",34.668,-3.369,1,50,10,1000],
+               ["Smoke",43.749,-3.420,500,1000,10,1000]]},
+};
+const EXTRA_FAMILY = [
+  ["MQ-131","Ozone, NOₓ, chlorine","—","10–1,000 ppb","15"],
+  ["MQ-136","Hydrogen sulphide (H₂S)","—","1–200 ppm","3.6"],
+  ["MQ-137","Ammonia (NH₃)","—","5–500 ppm","3.6"],
+  ["MQ-138","VOCs: benzene, toluene, acetone, formaldehyde","—","5–500 ppm","3.6"],
+];
+/* ---------------------------------------------------------------------------
+   Exposure limits. Published occupational values — NIOSH RELs, ACGIH TLVs,
+   NIOSH IDLHs, and NFPA/CRC lower explosive limits. These are the numbers the
+   occupancy verdict reasons with; the alarm thresholds in FAMILY derive from
+   them (10% of LEL for combustibles, health limits for toxics).
+   --------------------------------------------------------------------------- */
+const EXPOSURE = {
+  CO: {
+    kind: "toxic", hazard: "Chemical asphyxiant — binds haemoglobin 240× harder than oxygen",
+    twa: 35, twaSrc: "NIOSH REL, 8-h TWA", ceiling: 200, ceilingSrc: "NIOSH ceiling", idlh: 1200,
+    ladder: [
+      [35,   "8-hour occupational exposure limit"],
+      [100,  "Slight headache after 2–3 hours"],
+      [200,  "Headache and dizziness within 2–3 hours"],
+      [400,  "Frontal headache in 1–2 hours; life-threatening after 3 hours"],
+      [800,  "Nausea and convulsions in 45 minutes; death in 2–3 hours"],
+      [1600, "Death within 1 hour"],
+    ],
+  },
+  LPG:   {kind: "combustible", hazard: "Explosion, and oxygen displacement",
+          lel: 18000, lelSrc: "1.8% v/v", twa: 1000, twaSrc: "ACGIH TLV (propane), simple asphyxiant"},
+  CH4:   {kind: "combustible", hazard: "Explosion, and oxygen displacement",
+          lel: 50000, lelSrc: "5.0% v/v"},
+  H2:    {kind: "combustible", hazard: "Explosion — widest flammable range of any common gas",
+          lel: 40000, lelSrc: "4.0% v/v"},
+  NH3:   {kind: "toxic", hazard: "Corrosive to eyes and airways",
+          twa: 25, twaSrc: "NIOSH REL, 8-h TWA", ceiling: 35, ceilingSrc: "NIOSH STEL", idlh: 300},
+  Benzene: {kind: "toxic", hazard: "Human carcinogen — no safe exposure level",
+          twa: 1, twaSrc: "OSHA PEL, 8-h TWA", ceiling: 5, ceilingSrc: "OSHA STEL", idlh: 500},
+  CO2:   {kind: "toxic", hazard: "Asphyxiant; impairs cognition well before it is dangerous",
+          twa: 5000, twaSrc: "OSHA PEL, 8-h TWA", idlh: 40000},
+  Alcohol: {kind: "toxic", hazard: "Narcotic at high concentration; flammable",
+          twa: 1000, twaSrc: "ACGIH TLV (ethanol)"},
+  Smoke: {kind: "proxy", hazard: "Proxy only — the real hazards in smoke are PM2.5 and carbon monoxide"},
+};
+
+/* CPCB (India) Air Quality Index bands. Colours are CPCB's own. */
+const CPCB_BANDS = [
+  [0,   50,  "Good",         "#4a9f3c", "#fff", "Minimal impact"],
+  [51,  100, "Satisfactory", "#8fce4a", "#1c1c1e", "Minor breathing discomfort to sensitive people"],
+  [101, 200, "Moderate",     "#f3d234", "#1c1c1e", "Breathing discomfort to people with asthma or lung disease, children and older adults"],
+  [201, 300, "Poor",         "#ef8a34", "#1c1c1e", "Breathing discomfort to most people on prolonged exposure"],
+  [301, 400, "Very Poor",    "#e0392b", "#fff", "Respiratory illness on prolonged exposure"],
+  [401, 500, "Severe",       "#8b1a1a", "#fff", "Affects healthy people; serious impact on those with existing disease"],
+];
+
+/* What the CPCB index actually requires, versus what is on this board. */
+const AQI_NEEDS = [
+  ["PM2.5", "Beta-attenuation or gravimetric sampler", false],
+  ["PM10",  "Beta-attenuation or gravimetric sampler", false],
+  ["O₃",    "UV photometric analyser", false],
+  ["NO₂",   "Chemiluminescence analyser", false],
+  ["SO₂",   "UV fluorescence analyser", false],
+  ["CO",    "NDIR or electrochemical cell", "partial"],
+  ["NH₃",   "Chemiluminescence analyser", false],
+  ["Pb",    "Laboratory analysis of filter samples", false],
+];
+
+const BASIS = {
+  LPG:["Explosion","10% of the 1.8% lower explosive limit (18,000 ppm)"],
+  CH4:["Explosion","10% of the 5.0% lower explosive limit (50,000 ppm)"],
+  H2: ["Explosion","10% of the 4.0% lower explosive limit (40,000 ppm)"],
+  CO: ["Toxicity","35 ppm is the 8-hour exposure limit; 200 ppm gives headache in 2–3 h; 800 ppm is lethal in 2 h"],
+  NH3:["Toxicity","25 ppm is the 8-hour limit; 300 ppm is immediately dangerous to life and health"],
+  Benzene:["Carcinogen","No safe exposure level; 1 ppm is the occupational action level"],
+  CO2:["Physiology","1,000 ppm causes drowsiness and poor concentration; 5,000 ppm is the 8-hour limit"],
+  Smoke:["Fire","Empirical — smouldering combustion is detectable well before flame"],
+  Alcohol:["Reference","Not a hazard threshold; 0.2 mg/L breath ≈ the Indian driving limit"],
+};
+
+/* ===========================================================================
+   Wiring specifications — the diagram is generated from these, not drawn.
+   =========================================================================== */
+const WIRING = {
+  esp: {
+    mcu: {title:"NodeMCU ESP-12E", sub:"ESP8266 · 3.3 V logic"},
+    left: [
+      {title:"MQ gas module", sub:"Flying Fish", pins:["VCC","GND","AOUT","DOUT"]},
+      {title:"Alarm", sub:"active buzzer + LED", pins:["BUZZ +","LED + 220Ω","− common"]},
+    ],
+    right: [
+      {title:"PCF8574 backpack", sub:"on the 16×2 LCD", pins:["VCC","GND","SDA","SCL"]},
+    ],
+    links: [
+      ["L0.VCC","Vin (5 V)","pwr","5 V","The SnO₂ heater needs a real 5 V. USB power arrives on Vin."],
+      ["L0.GND","GND","gnd","Ground","Shared reference. Every ground must meet at one point."],
+      ["L0.AOUT","A0","ana","Analog 0–5 V","Through the 68 kΩ/100 kΩ divider — never straight into A0."],
+      ["L0.DOUT","D6 (GPIO12)","dig","Digital trip","Optional. The module's own comparator, set by its trimpot."],
+      ["L1.BUZZ +","D5 (GPIO14)","out","Alarm drive","Above ~12 mA, drive it through a 2N2222 instead of directly."],
+      ["L1.LED + 220Ω","D7 (GPIO13)","out","Alarm drive","Visual alarm for anyone who cannot hear the buzzer."],
+      ["L1.− common","GND","gnd","Ground","Buzzer and LED cathodes return here."],
+      ["R0.VCC","Vin (5 V)","pwr","5 V","5 V gives a bright backlight. 3.3 V also works, dimmer and safer."],
+      ["R0.GND","GND","gnd","Ground",""],
+      ["R0.SDA","D2 (GPIO4)","i2c","I²C data","Fixed by the Wire.begin(D2, D1) call in setup()."],
+      ["R0.SCL","D1 (GPIO5)","i2c","I²C clock","Fixed by the Wire.begin(D2, D1) call in setup()."],
+    ],
+    warnings: [
+      ["danger","MQ AOUT must go through a 68 kΩ/100 kΩ divider. A0 on a NodeMCU tolerates about 3.3 V; the sensor outputs up to 5 V. Direct connection damages the ADC."],
+      ["warn","A 5 V backpack pulls SDA and SCL to 5 V, above the ESP8266's 3.3 V rating. Use a BSS138 level shifter, or power the backpack from 3.3 V and accept a dimmer display."],
+    ],
+  },
+  uno: {
+    mcu: {title:"Arduino Uno", sub:"ATmega328P · 5 V logic"},
+    left: [
+      {title:"MQ-2 gas module", sub:"Flying Fish", pins:["VCC","GND","AOUT","DOUT"]},
+      {title:"Buzzer", sub:"2 terminals, straight to the pin", pins:["+ long leg","− short leg"]},
+    ],
+    right: [
+      {title:"PCF8574 backpack", sub:"on the 16×2 LCD", pins:["VCC","GND","SDA","SCL"]},
+    ],
+    links: [
+      ["L0.VCC","5V","pwr","5 V","Heater supply, ~150 mA. Power the board from a 5 V/2 A charger rather than a laptop port — the heater is specified at 5.0 V ± 0.1 V."],
+      ["L0.GND","GND","gnd","Ground","Shared reference. Every ground must meet at one point."],
+      ["L0.AOUT","A0","ana","Analog 0–5 V","Straight in. The ADC reference is 5 V, so no divider is needed — this is the reason the Uno build exists."],
+      ["L0.DOUT","D7","dig","Digital trip","Optional. The module's own comparator, set by its trimpot."],
+      ["L1.+ long leg","D8","out","Alarm drive","Straight to the pin. Longer leg, or the terminal marked +, is positive."],
+      ["L1.− short leg","GND","gnd","Ground","Shorter leg to any ground pin."],
+      ["R0.VCC","5V","pwr","5 V","Full brightness, and no level shifting needed anywhere on this build."],
+      ["R0.GND","GND","gnd","Ground",""],
+      ["R0.SDA","A4 (SDA)","i2c","I²C data","Hardware I²C on the ATmega328P. Not reassignable."],
+      ["R0.SCL","A5 (SCL)","i2c","I²C clock","Hardware I²C on the ATmega328P. Not reassignable."],
+    ],
+    warnings: [
+      ["", "Ten wires, no resistors, no transistors. Everything runs at 5 V, so there is nothing to level-shift and no divider to get wrong. The visual alarm is the Uno's own pin-13 LED, which already has a resistor on the board — nothing to wire for it."],
+      ["warn","A4 and A5 are the I²C bus here, not spare analog inputs. Do not reuse them."],
+      ["warn","Never connect a bare LED straight to a pin without a series resistor. Use the on-board pin-13 one instead, which is what the firmware drives."],
+    ],
+  },
+};
+const LCD_PINS = [
+  ["1","GND / VSS","Ground"],["2","VDD / VCC","+5 V logic supply"],
+  ["3","VO","Contrast — the trimmer on the backpack drives this"],
+  ["4","RS","Register select: command or data"],
+  ["5","RW","Read/write. The backpack ties it low, write-only"],
+  ["6","E","Enable strobe — latches each nibble"],
+  ["7–10","D0–D3","Low data nibble. Unused in 4-bit mode"],
+  ["11–14","D4–D7","High data nibble. The bus actually used"],
+  ["15","BLA / A","Backlight anode, +5 V through the backpack's jumper"],
+  ["16","BLK / K","Backlight cathode, to ground"],
+];
+
+/* ---------------------------------------------------------------------------
+   Roadmap data
+   --------------------------------------------------------------------------- */
+
+/* AQI coverage by build stage. `partial` means the pollutant is measured but
+   not across the range the index actually needs — an MQ-7 sees CO from 20 ppm,
+   while the AQI's CO scale starts at zero. */
+const STAGES = [
+  {name: "Now", what: "MQ-2 alone. One broadband sensor, no selective measurement of anything.",
+   cov: {"PM2.5": 0, "PM10": 0, "O₃": 0, "NO₂": 0, "SO₂": 0, "CO": 0, "NH₃": 0, "Pb": 0}},
+  {name: "v2", what: "Add an MQ-7 for carbon monoxide and a BME680 for temperature and humidity compensation.",
+   cov: {"PM2.5": 0, "PM10": 0, "O₃": 0, "NO₂": 0, "SO₂": 0, "CO": 1, "NH₃": 0, "Pb": 0}},
+  {name: "v3", what: "Add a PMS5003 particulate counter and an MQ-137 for ammonia. This is the practical ceiling.",
+   cov: {"PM2.5": 2, "PM10": 2, "O₃": 0, "NO₂": 0, "SO₂": 0, "CO": 1, "NH₃": 1, "Pb": 0}},
+];
+const COV_LABEL = ["not measured", "partial range", "measured"];
+
+const ADD_SENSORS = [
+  ["MQ-7", "Carbon monoxide, 20–2000 ppm", "SnO₂, dual heater cycle",
+   "The biggest blind spot in this build. Its 20 ppm floor sits below the 35 ppm exposure limit, so it can see CO while there is still time to act.", "250"],
+  ["BME680", "Temperature, humidity, pressure, VOC", "Multi-element MEMS",
+   "Lets R₀ be corrected for temperature and humidity — which currently drift the baseline enough to look like a small leak on a muggy afternoon.", "900"],
+  ["PMS5003", "PM1.0, PM2.5, PM10", "Laser scattering, counts particles",
+   "The two pollutants that dominate Indian AQI. Nothing else on this list moves the index as much.", "1,400"],
+  ["MH-Z19C", "CO₂, 400–5000 ppm", "NDIR — infrared absorption",
+   "The first genuinely selective measurement in the system. Reports real ppm rather than an inferred one, and makes indoor ventilation measurable.", "1,600"],
+  ["ZE07-CO", "Carbon monoxide, 0–500 ppm", "Electrochemical cell",
+   "Factory-calibrated CO in real ppm with no curve fitting. What you would use if the reading had to be defensible rather than indicative.", "1,800"],
+  ["MQ-137", "Ammonia, 5–500 ppm", "SnO₂",
+   "Adds the eighth CPCB pollutant that is reachable with a hobby sensor.", "300"],
+  ["ME2-O2", "Oxygen, 0–25% v/v", "Electrochemical cell",
+   "Confined-space safety. Below 19.5% oxygen a space is unsafe to enter regardless of what else is or isn't in the air — a hazard this build is completely blind to.", "1,500"],
+  ["DHT22", "Temperature, humidity", "Capacitive + thermistor",
+   "The cheap version of the BME680 line if compensation is all you need.", "150"],
+];
+
+const FREE_METRICS = [
+  ["Rate of change", "Differentiate Rs/R₀ over a 30-second window",
+   "A reading climbing fast means an active leak; the same value sitting flat is likely a shifted baseline. Rate distinguishes them, and it needs no new hardware."],
+  ["Accumulated dose", "Integrate concentration × time across the session",
+   "Exposure limits are time-weighted averages, so dose is what the limit is actually about. The Safety tab currently computes a permitted time from an instantaneous reading; tracking the running total is the correct version of that."],
+  ["Baseline drift", "Compare a long moving average against the stored R₀",
+   "Tells you when recalibration is genuinely due, instead of guessing seasonally, and surfaces sensor ageing as a number."],
+  ["Peak hold with timestamp", "Track the session maximum per gas",
+   "An alarm that fires while nobody is watching currently leaves no record of how bad it got. Peak hold answers that."],
+  ["Sensor-response signature", "Log the full Rs/R₀ curve shape during an event",
+   "Different gases desorb at different rates, so the recovery curve carries information the peak value alone does not — and it is the raw material for the classifier below."],
+];
+
+const HARDENING = [
+  ["Heater continuity check", "An open-circuit sensor reads as infinite resistance, which the maths interprets as clean air. The detector would report all-clear while broken.", "Critical"],
+  ["Temperature and humidity compensation of R₀", "Baseline shifts with weather are currently indistinguishable from a small real leak.", "High"],
+  ["SD card logging", "History exists only while the browser tab is open. An unattended overnight run records nothing.", "High"],
+  ["Watchdog timer", "A hung sketch leaves the LCD frozen on its last reading, which reads as a working detector showing all-clear.", "Medium"],
+  ["Auto-recalibration window", "Recalibrate R₀ automatically during a period known to be clean, instead of relying on someone remembering to do it outdoors.", "Medium"],
+  ["Battery backup", "A gas leak that cuts power also kills the detector, at exactly the moment it is needed.", "Medium"],
+  ["Second detector for cross-checking", "Two units disagreeing is itself a fault signal — the cheapest form of redundancy.", "Low"],
+];
+
+/* ===========================================================================
+   State
+   =========================================================================== */
+let MODEL = 2, MQ = FAMILY[2];
+let live = null, demo = false, connected = false;
+let source = "demo";        // "usb" | "device" | "demo"
+let hist = [];                 // {t, ppm[], ratio, status}
+let events = [];
+let histGasIdx = 0, logScale = false;
+let peak = {}, sampleCount = 0, lastStatus = "SAFE", startedAt = Date.now();
+let demoState = {r: null, leak: 0};
+const $ = s => document.querySelector(s);
+const el = (t, c, x) => { const n = document.createElement(t); if (c) n.className = c;
+  if (x != null) n.textContent = x; return n; };
+const fmt = (v, d) => (v == null || !isFinite(v)) ? "—" :
+  v.toLocaleString(undefined, {minimumFractionDigits: d, maximumFractionDigits: d});
+const ppmFmt = v => v >= 1000 ? fmt(v, 0) : v >= 10 ? fmt(v, 1) : fmt(v, 2);
+
+/* ===========================================================================
+   Tabs — sliding pill, critically damped, no overshoot
+   =========================================================================== */
+function wireSeg(segId, pillId, onPick, attr) {
+  const seg = $(segId), pill = $(pillId);
+  const move = b => { pill.style.width = b.offsetWidth + "px";
+                      pill.style.transform = `translateX(${b.offsetLeft - 2}px)`; };
+  seg.querySelectorAll("button").forEach(b => {
+    b.addEventListener("click", () => {
+      seg.querySelectorAll("button").forEach(o => o.setAttribute("aria-selected", o === b));
+      move(b); onPick(b.dataset[attr]);
+    });
+  });
+  const init = () => move(seg.querySelector('[aria-selected="true"]'));
+  requestAnimationFrame(init);
+  addEventListener("resize", init);
+  return init;
+}
+wireSeg("#tabs", "#segPill", p => {
+  document.querySelectorAll(".panel").forEach(s => s.hidden = s.id !== "p-" + p);
+  // Called directly, not through requestAnimationFrame: rAF does not fire while
+  // the tab is backgrounded, which would leave a freshly-opened panel blank.
+  // Each of these builds DOM from data and measures no layout.
+  if (p === "history")  drawChart();
+  if (p === "safety")   drawCoLadder();
+  if (p === "roadmap")  renderRoadmap();
+  if (p === "hardware") drawDiagram();
+  scrollTo({top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"});
+}, "p");
+
+/* ===========================================================================
+   Data acquisition — real device first, simulation only as a fallback
+   =========================================================================== */
+/* ===========================================================================
+   USB — Web Serial. The detector prints one line a second; this reads it
+   straight off the port with no server, no network and nothing in between.
+
+   Constraints: Chrome/Edge/Opera desktop only, secure context (HTTPS or
+   localhost), a user gesture to open the picker, and not inside a sandboxed
+   iframe. A Vercel deployment satisfies all four.
+   =========================================================================== */
+/* Web Serial has four independent preconditions, and failing any one of them
+   looks identical from the user's side: no button. Report which one. Order
+   matters — inside an iframe `navigator.serial` may exist but every call is
+   blocked by permissions policy, so the frame check has to come first. */
+function serialBlockedBecause() {
+  if (typeof window !== "undefined" && window.self !== window.top) return "iframe";
+  if (typeof window !== "undefined" && window.isSecureContext === false) return "insecure";
+  if (typeof navigator === "undefined" || !("serial" in navigator)) return "unsupported";
+  return null;
+}
+const SERIAL_BLOCK = serialBlockedBecause();
+const SERIAL_SUPPORTED = SERIAL_BLOCK === null;
+let port = null, serialReader = null, keepReading = false;
+let lastUsbLine = 0, warmupLeft = 0;
+const STATUS_NAMES = ["SAFE", "WARNING", "DANGER"];
+
+async function connectUsb() {
+  if (source === "usb") { await disconnectUsb(); return; }
+  try {
+    port = await navigator.serial.requestPort();
+    await port.open({baudRate: 115200});
+    // Holding DTR/RTS low keeps the board out of reset. Opening the port
+    // already pulsed DTR once, which the firmware detects as a warm restart
+    // and answers with an 8-second settle instead of a 3-minute warm-up.
+    try { await port.setSignals({dataTerminalReady: false, requestToSend: false}); } catch (e) {}
+    keepReading = true;
+    source = "usb";
+    lastUsbLine = Date.now();
+    $("#btnUsb").textContent = "Disconnect";
+    readLoop();
+  } catch (e) {
+    const note = $("#usbNote");
+    note.hidden = false;
+    if (e && e.name === "NotFoundError") {
+      // Chrome throws this both when the user cancels and when the picker had
+      // nothing to show, so cover the second case rather than failing silently.
+      note.innerHTML =
+        "<b>No port chosen.</b> If the list was empty, the board is not reaching this computer: " +
+        "check the USB cable actually carries data (many charging cables do not), and confirm " +
+        "the Arduino IDE lists a port under <b>Tools → Port</b>.";
+    } else {
+      note.innerHTML =
+        "<b>Could not open the port:</b> " + ((e && e.message) || e) + ". " +
+        "The usual cause is another program already holding it — <b>close the Arduino IDE's " +
+        "Serial Monitor</b> and try again. Only one program can own a serial port.";
+    }
+    port = null;
+  }
+}
+
+async function disconnectUsb() {
+  keepReading = false;
+  try { if (serialReader) await serialReader.cancel(); } catch (e) {}
+  try { if (port) await port.close(); } catch (e) {}
+  port = null; serialReader = null; warmupLeft = 0;
+  source = "demo";
+  $("#btnUsb").textContent = "Connect detector";
+}
+
+async function readLoop() {
+  const decoder = new TextDecoderStream();
+  port.readable.pipeTo(decoder.writable).catch(() => {});
+  serialReader = decoder.readable.getReader();
+  let buf = "";
+  try {
+    while (keepReading) {
+      const {value, done} = await serialReader.read();
+      if (done) break;
+      buf += value;
+      let i;
+      while ((i = buf.indexOf("\n")) >= 0) {
+        handleSerialLine(buf.slice(0, i).trim());
+        buf = buf.slice(i + 1);
+      }
+      if (buf.length > 4096) buf = "";     // never let a garbled stream grow unbounded
+    }
+  } catch (e) { /* cable pulled */ }
+  if (source === "usb") disconnectUsb();
+}
+
+function handleSerialLine(line) {
+  if (line.startsWith("GSW,")) {           // heater warm-up countdown
+    warmupLeft = parseInt(line.slice(4), 10) || 0;
+    lastUsbLine = Date.now();
+    renderWarmup();
+    return;
+  }
+  if (!line.startsWith("GS1,")) return;    // boot banner and 'r' output land here
+  const p = line.split(",");
+  if (p.length < 10) return;
+
+  const mq = +p[2], ratio = +p[7] / 1000;
+  const m = FAMILY[mq];
+  if (!m || !isFinite(ratio)) return;
+
+  MODEL = mq; MQ = m;
+  warmupLeft = 0;
+  const gases = gasesFor(m, ratio);
+  const mine = worstOf(gases), theirs = STATUS_NAMES[+p[9]] || "SAFE";
+
+  live = {
+    model: m.name, mq, note: m.note, status: mine,
+    volts: +p[4] / 1000, adc: +p[3], rs: +p[5], r0: +p[6], ratio,
+    rl: 10000, vc: 5, cleanAirRatio: m.ratio, dout: +p[8],
+    alarm: mine !== "SAFE", muted: false,
+    uptime: Math.floor(+p[1] / 1000), samples: sampleCount + 1,
+    calibAge: null, heap: null, ip: "USB", ssid: "—", rssi: null,
+    // The device reached its own verdict independently. If the two disagree,
+    // the firmware and this page have drifted apart and both are suspect.
+    deviceStatus: theirs, mismatch: theirs !== mine,
+    uncalibrated: +p[6] <= 0,
+    gases,
+  };
+  lastUsbLine = Date.now();
+  ingest();
+  render();
+}
+
+function renderWarmup() {
+  $("#connPill").textContent = "Warming up · " + warmupLeft + "s";
+  $("#connPill").className = "pill demo";
+  $("#heroState").textContent = "Warming up";
+  $("#heroDetail").innerHTML =
+    `The heater needs to reach a stable temperature before any reading means anything. ` +
+    `<b>${warmupLeft}s</b> remaining.`;
+}
+
+let prefilled = false;
+/* The device keeps its own rolling buffer of Rs/R0, so the chart is already
+   populated when the page opens instead of starting empty. */
+async function prefill() {
+  if (prefilled) return; prefilled = true;
+  try {
+    const h = await (await fetch("/api/history", {cache: "no-store"})).json();
+    const now = Date.now(), m = FAMILY[MODEL];
+    const pts = h.ratios.map((ratio, i) => {
+      const gases = gasesFor(m, ratio);
+      return {t: now - (h.ratios.length - i) * h.periodMs, ratio, status: worstOf(gases),
+              ppm: gases.map(g => g.ppm)};
+    });
+    hist = pts.concat(hist);
+    startedAt = Math.min(startedAt, pts.length ? pts[0].t : startedAt);
+  } catch (e) { /* no device buffer — the session's own samples will fill in */ }
+}
+
+async function poll() {
+  // The USB path is push-driven — each serial line renders itself. All this
+  // timer does there is notice when the stream has gone quiet, rather than
+  // leaving a stale reading on screen looking live.
+  if (source === "usb") {
+    if (Date.now() - lastUsbLine > 5000) {
+      $("#connPill").textContent = "USB · no data";
+      $("#connPill").className = "pill lost";
+    }
+    return;
+  }
+
+  try {
+    const r = await fetch("/api", {cache: "no-store"});
+    if (!r.ok) throw 0;
+    live = await r.json();
+    source = "device"; demo = false; connected = true;
+    $("#btnLeak").hidden = true;
+    if (!prefilled) { ingest(); await prefill(); render(); return; }
+  } catch (e) {
+    if (!demo) { demo = true; $("#btnLeak").hidden = false; }
+    source = "demo";
+    live = simulate();
+    connected = false;
+  }
+  ingest();
+  render();
+}
+
+/* Build the gas block the same way the firmware does: raw curve output,
+   clamped to the datasheet band, with gases the sensor cannot resolve
+   excluded from the alarm. Used by the simulator and by history replay. */
+function gasesFor(m, ratio) {
+  return m.gases.map(([name, a, b, warn, danger, min, max]) => {
+    const raw = a * Math.pow(ratio, b);
+    const ppm = Math.min(max, Math.max(min, raw));
+    const resolvable = warn >= min;
+    const range = raw < min ? "below" : raw > max ? "above" : "in";
+    const status = !resolvable ? "SAFE" : ppm >= danger ? "DANGER" : ppm >= warn ? "WARNING" : "SAFE";
+    return {name, a, b, warn, danger, min, max, raw, ppm, range, resolvable, status};
+  });
+}
+/* A plausible sensor, so the interface can be judged without hardware.
+   In clean air Rs/R0 sits at the datasheet clean-air ratio, not at 1. */
+function simulate() {
+  const m = FAMILY[MODEL];
+  if (demoState.r == null) demoState.r = m.ratio;
+  demoState.r += (Math.random() - 0.5) * m.ratio * 0.02;
+  demoState.r += (m.ratio - demoState.r) * 0.08;   // recovery is slow, as it is in reality
+  if (demoState.leak > 0) { demoState.leak -= 1; demoState.r -= (demoState.r - 0.45) * 0.5; }
+  const ratio = Math.max(0.05, demoState.r);
+  const gases = gasesFor(m, ratio);
+  const r0 = 4700, rs = ratio * r0;
+  const volts = 5 * 10000 / (rs + 10000);
+  return {model: m.name, mq: MODEL, status: worstOf(gases), volts,
+          adc: Math.round(volts / 5.54 * 1023), rs, r0, ratio, rl: 10000, vc: 5,
+          cleanAirRatio: m.ratio, note: m.note, dout: 0,
+          alarm: gases.some(g => g.status !== "SAFE"),
+          muted: false, uptime: Math.floor((Date.now() - startedAt) / 1000),
+          ssid: "—", rssi: null, ip: "—", heap: null, samples: sampleCount,
+          calibAge: 3600 * 26, gases};
+}
+const worstOf = g => g.some(x => x.status === "DANGER") ? "DANGER"
+                   : g.some(x => x.status === "WARNING") ? "WARNING" : "SAFE";
+
+function ingest() {
+  if (!live) return;
+  MODEL = live.mq || MODEL; MQ = FAMILY[MODEL] || MQ;
+  sampleCount++;
+  hist.push({t: Date.now(), ratio: live.ratio, status: live.status,
+             ppm: live.gases.map(g => g.ppm)});
+  if (hist.length > 900) hist.shift();
+  live.gases.forEach(g => { peak[g.name] = Math.max(peak[g.name] || 0, g.ppm); });
+  if (live.status !== lastStatus) {
+    events.unshift({t: Date.now(), from: lastStatus, to: live.status,
+                    gas: worstGas().name, ppm: worstGas().ppm});
+    if (events.length > 40) events.pop();
+    lastStatus = live.status;
+  }
+}
+/* Gases the sensor cannot resolve are excluded — otherwise an MQ-2's CO row,
+   pinned at its 200 ppm floor, would permanently claim to be the worst. */
+function worstGas() {
+  if (!live) return {name: "—", ppm: 0, warn: 1, danger: 1};
+  const pool = live.gases.filter(g => g.resolvable !== false);
+  return (pool.length ? pool : live.gases)
+    .reduce((a, b) => (b.ppm / b.danger > a.ppm / a.danger ? b : a));
+}
+
+/* ===========================================================================
+   Render
+   =========================================================================== */
+function render() {
+  if (!live) return;
+  const st = live.status, w = worstGas();
+  // Below the sensor's floor there is no signal to scale — clamping to the
+  // floor and calling it "20% of danger" would invent a reading.
+  const belowFloor = w.range === "below";
+  const sev = belowFloor ? 0 : Math.min(1, w.ppm / w.danger);
+
+  $("#navDot").className = "dot " + st;
+  const pill = $("#connPill");
+  if (source === "usb") {
+    pill.textContent = live.uncalibrated ? "USB · not calibrated" : "USB · live";
+    pill.className = "pill " + (live.uncalibrated ? "demo" : "live");
+  } else if (source === "device") {
+    pill.textContent = "Device · live"; pill.className = "pill live";
+  } else {
+    pill.textContent = "Demo data"; pill.className = "pill demo";
+  }
+
+  $("#hero").className = "hero " + st;
+  $("#heroState").textContent = st === "SAFE" ? "All clear" : st === "WARNING" ? "Elevated" : "Danger";
+  $("#heroModel").textContent = `${live.model} · ${MQ.target}`;
+  $("#heroDetail").innerHTML = st !== "SAFE"
+    ? `<b>${w.name}</b> at <b>${ppmFmt(w.ppm)} ${MQ.unit}</b>, past the ${st === "DANGER" ? "danger" : "warning"} threshold of <b>${ppmFmt(st === "DANGER" ? w.danger : w.warn)}</b>. Ventilate, kill ignition sources, find the source.`
+    : belowFloor
+    ? `Nothing above this sensor's <b>${ppmFmt(w.min)} ${MQ.unit}</b> detection floor. Rs/R₀ is <b>${fmt(live.ratio, 2)}</b> against a clean-air baseline of <b>${fmt(live.cleanAirRatio, 2)}</b>.`
+    : `Highest reading is <b>${w.name}</b> at <b>${ppmFmt(w.ppm)} ${MQ.unit}</b> — ${fmt(sev * 100, 0)}% of its danger threshold.`;
+  $("#worstTag").textContent = st; $("#worstTag").className = "tag " + st;
+
+  const arc = $("#arc"), C = 2 * Math.PI * 70;
+  arc.style.strokeDashoffset = C * (1 - sev);
+  arc.style.stroke = `var(--${st === "DANGER" ? "danger" : st === "WARNING" ? "warn" : "safe"})`;
+  $("#gaugePct").textContent = fmt(sev * 100, 0) + "%";
+  $("#btnMute").textContent = live.muted ? "Buzzer silenced" : "Silence buzzer";
+
+  renderGases(); renderChain(); renderSpark();
+  if (!$("#p-history").hidden) drawChart();
+  renderStats(); renderEvents(); renderSensor(); renderSafety(); renderSystem();
+  gateControls();
+}
+
+function renderGases() {
+  const box = $("#gasList"); box.innerHTML = "";
+  live.gases.forEach(g => {
+    const d = el("div", "gas");
+    const top = el("div", "gas-top");
+    top.append(el("span", "gas-name", g.name));
+    if (g.resolvable === false) {
+      const t = el("span", "tag", "not resolvable");
+      t.title = `This sensor's floor is ${ppmFmt(g.min)} ${MQ.unit}, above the ${ppmFmt(g.warn)} ${MQ.unit} warning level for ${g.name}. Shown for context; never used for the alarm.`;
+      top.append(t);
+    } else {
+      top.append(el("span", "tag " + g.status, g.status));
+      if (g.range === "below") top.append(el("span", "tag", "below floor"));
+      if (g.range === "above") top.append(el("span", "tag", "saturated"));
+    }
+    const v = el("span", "gas-val num");
+    v.textContent = (g.range === "below" ? "< " : g.range === "above" ? "> " : "") + ppmFmt(g.ppm);
+    if (g.resolvable === false) v.style.color = "var(--text-3)";
+    top.append(v, el("span", "gas-unit", MQ.unit));
+    const frac = Math.min(1, g.ppm / (g.danger * 1.25));
+    const m = el("div", "meter"), fill = el("i");
+    fill.style.width = (frac * 100) + "%";
+    fill.style.background = g.resolvable === false ? "var(--text-3)"
+      : `var(--${g.status === "DANGER" ? "danger" : g.status === "WARNING" ? "warn" : "safe"})`;
+    m.append(fill);
+    const ticks = el("div", "ticks");
+    const mk = (pos, txt) => { const s = el("span", null, txt); s.style.left = pos + "%"; return s; };
+    ticks.append(mk(100 * g.warn / (g.danger * 1.25), "warn " + ppmFmt(g.warn)),
+                 mk(100 / 1.25, "danger " + ppmFmt(g.danger)));
+    d.append(top, m, ticks);
+    box.append(d);
+  });
+}
+
+function renderChain() {
+  const lelMap = {LPG: 18000, CH4: 50000, H2: 40000};
+  const w = worstGas(), lel = lelMap[w.name];
+  kv("#chain", [
+    ["ADC counts", live.adc == null ? "—" : fmt(live.adc, 0), "of 1023"],
+    ["Sensor output", fmt(live.volts, 3), "volts, smoothed"],
+    ["Rs", fmt(live.rs / 1000, 2), "kΩ sensing"],
+    ["R₀", fmt(live.r0 / 1000, 2), "kΩ clean-air baseline"],
+    ["Rs / R₀", fmt(live.ratio, 3), "the only measurement"],
+    ["Load R", fmt(live.rl / 1000, 1), "kΩ on the module"],
+    ["Heater V", fmt(live.vc, 2), "volts"],
+    ["Module DOUT", live.dout ? "TRIPPED" : "clear", "its own comparator"],
+    lel ? ["% of LEL", fmt(100 * w.ppm / lel, 2), `% — ${w.name} explosive limit`] : null,
+  ].filter(Boolean));
+}
+function kv(sel, rows) {
+  const box = $(sel); box.innerHTML = "";
+  rows.forEach(([k, v, s]) => {
+    const g = el("div"); g.append(el("dt", null, k));
+    const dd = el("dd", "num"); dd.textContent = v;
+    if (s) { dd.append(" "); dd.append(el("small", null, s)); }
+    g.append(dd); box.append(g);
+  });
+}
+
+/* ---- Charts ------------------------------------------------------------- */
+function seriesFor(idx, n) {
+  const pts = hist.slice(-n);
+  return pts.map(p => p.ppm[idx] ?? 0);
+}
+function renderSpark() {
+  const svg = $("#spark"), W = 600, H = 180, n = 150;
+  const idx = 0, data = seriesFor(idx, n);
+  $("#sparkLbl").textContent = live.gases[idx] ? live.gases[idx].name + " · " + MQ.unit : "";
+  if (data.length < 2) { svg.innerHTML = ""; return; }
+  const max = Math.max(...data, live.gases[idx].warn * 1.2) * 1.1, min = 0;
+  const x = i => i / (data.length - 1) * W;
+  const y = v => H - 12 - (v - min) / (max - min || 1) * (H - 24);
+  const line = data.map((v, i) => (i ? "L" : "M") + x(i).toFixed(1) + " " + y(v).toFixed(1)).join(" ");
+  const area = line + ` L${W} ${H} L0 ${H} Z`;
+  const st = live.status;
+  const col = `var(--${st === "DANGER" ? "danger" : st === "WARNING" ? "warn" : "accent"})`;
+  svg.innerHTML =
+    `<defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${col}" stop-opacity=".28"/>
+      <stop offset="100%" stop-color="${col}" stop-opacity="0"/></linearGradient></defs>
+     <path d="${area}" fill="url(#sg)"/>
+     <path d="${line}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+     <line class="thr" x1="0" x2="${W}" y1="${y(live.gases[idx].warn)}" y2="${y(live.gases[idx].warn)}" stroke="var(--warn)"/>`;
+}
+
+function drawChart() {
+  const svg = $("#chart"), W = 900, H = 300, P = {l: 52, r: 14, t: 14, b: 26};
+  const sel = $("#histGas");
+  if (sel.options.length !== (live ? live.gases.length : 0)) {
+    sel.innerHTML = "";
+    (live ? live.gases : []).forEach((g, i) => sel.append(new Option(g.name, i)));
+    sel.value = String(Math.min(histGasIdx, sel.options.length - 1));
+  }
+  const idx = +sel.value || 0; histGasIdx = idx;
+  const g = live && live.gases[idx];
+  const data = seriesFor(idx, 600);
+  if (!g || data.length < 2) { svg.innerHTML = `<text x="20" y="40">Collecting data…</text>`; return; }
+
+  const iw = W - P.l - P.r, ih = H - P.t - P.b;
+  const rawMax = Math.max(...data, g.danger * 1.15);
+  const lo = logScale ? Math.max(0.01, Math.min(...data.filter(v => v > 0)) * 0.8) : 0;
+  const hi = rawMax * 1.05;
+  const tf = v => logScale ? Math.log10(Math.max(v, lo)) : v;
+  const y = v => P.t + ih - (tf(v) - tf(lo)) / (tf(hi) - tf(lo) || 1) * ih;
+  const x = i => P.l + i / (data.length - 1) * iw;
+
+  let out = "";
+  for (let k = 0; k <= 4; k++) {
+    const v = logScale ? Math.pow(10, tf(lo) + (tf(hi) - tf(lo)) * k / 4) : lo + (hi - lo) * k / 4;
+    const yy = y(v);
+    out += `<line class="grid-l" x1="${P.l}" x2="${W - P.r}" y1="${yy}" y2="${yy}"/>
+            <text x="${P.l - 8}" y="${yy + 3.5}" text-anchor="end">${ppmFmt(v)}</text>`;
+  }
+  const line = data.map((v, i) => (i ? "L" : "M") + x(i).toFixed(1) + " " + y(v).toFixed(1)).join(" ");
+  out += `<defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="var(--accent)" stop-opacity=".26"/>
+            <stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/></linearGradient></defs>
+          <path d="${line} L${x(data.length - 1)} ${P.t + ih} L${P.l} ${P.t + ih} Z" fill="url(#cg)"/>
+          <path d="${line}" fill="none" stroke="var(--accent)" stroke-width="2.2"
+                stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+          <line class="thr" x1="${P.l}" x2="${W - P.r}" y1="${y(g.warn)}" y2="${y(g.warn)}" stroke="var(--warn)"/>
+          <line class="thr" x1="${P.l}" x2="${W - P.r}" y1="${y(g.danger)}" y2="${y(g.danger)}" stroke="var(--danger)"/>`;
+  const span = data.length * 2;
+  out += `<text x="${P.l}" y="${H - 8}">−${Math.round(span / 60)} min</text>
+          <text x="${W - P.r}" y="${H - 8}" text-anchor="end">now</text>`;
+  svg.innerHTML = out;
+  $("#histLbl").textContent =
+    `${g.name} · ${data.length} samples · ${Math.round(span / 60)} minute window · ${logScale ? "logarithmic" : "linear"} scale`;
+}
+$("#histGas").addEventListener("change", drawChart);
+$("#histScale").addEventListener("click", e => {
+  logScale = !logScale; e.target.textContent = logScale ? "Linear scale" : "Log scale"; drawChart();
+});
+
+function renderStats() {
+  if (!live) return;
+  const w = worstGas();
+  const mins = (Date.now() - startedAt) / 60000;
+  const inAlarm = hist.filter(h => h.status !== "SAFE").length;
+  kv("#stats", [
+    ["Samples", fmt(sampleCount, 0), "this session"],
+    ["Session", fmt(mins, 1), "minutes"],
+    ["Time not clear", fmt(hist.length ? 100 * inAlarm / hist.length : 0, 1), "% of samples"],
+    ["Peak " + w.name, ppmFmt(peak[w.name] || 0), MQ.unit],
+    ["Lowest Rs/R₀", fmt(Math.min(...hist.map(h => h.ratio)), 3), "most gas seen"],
+    ["State changes", fmt(events.length, 0), "logged"],
+  ]);
+}
+function renderEvents() {
+  const tb = $("#events");
+  if (!events.length) { tb.innerHTML = `<tr><td class="sub">No state changes yet.</td></tr>`; return; }
+  tb.innerHTML = events.map(e => `<tr>
+    <td class="num">${new Date(e.t).toLocaleTimeString()}</td>
+    <td><span class="tag ${e.to}">${e.to}</span></td>
+    <td>${e.gas} ${ppmFmt(e.ppm)} ${MQ.unit}</td></tr>`).join("");
+}
+
+function renderSensor() {
+  if (!live) return;
+  $("#senseTitle").textContent = live.model;
+  $("#senseNote").textContent = live.note || MQ.note;
+  kv("#senseFacts", [
+    ["Primary target", MQ.target, ""],
+    ["Cross-sensitive to", MQ.also, ""],
+    ["Detection range", MQ.range, ""],
+    ["Clean-air Rs/R₀", fmt(live.cleanAirRatio, 2), "datasheet"],
+    ["Reporting unit", MQ.unit, ""],
+    ["Gases modelled", fmt(live.gases.length, 0), "from one measurement"],
+  ]);
+  $("#curveRows").innerHTML = live.gases.map(g => `<tr>
+    <td><strong>${g.name}</strong>${g.resolvable === false
+        ? `<br><span class="sub">floor ${ppmFmt(g.min)} > warn ${ppmFmt(g.warn)} — excluded from the alarm</span>` : ""}</td>
+    <td class="n num">${fmt(g.a, 3)}</td>
+    <td class="n num">${fmt(g.b, 3)}</td>
+    <td class="n num">${ppmFmt(g.min)} – ${ppmFmt(g.max)}</td>
+    <td class="n num">${ppmFmt(g.warn)}</td>
+    <td class="n num">${ppmFmt(g.danger)}${g.danger > g.max
+        ? `<br><span class="sub">above ceiling</span>` : ""}</td>
+    <td class="n num">${g.resolvable === false
+        ? `<span class="sub">${ppmFmt(g.ppm)}</span>`
+        : `<span class="tag ${g.status}">${g.range === "below" ? "&lt; " : g.range === "above" ? "&gt; " : ""}${ppmFmt(g.ppm)}</span>`}</td></tr>`).join("");
+  $("#familyRows").innerHTML =
+    Object.entries(FAMILY).map(([k, m]) => `<tr class="${+k === MODEL ? "me" : ""}">
+      <td><strong>${m.name}</strong></td><td>${m.target}</td><td class="sub">${m.also}</td>
+      <td class="n">${m.range}</td><td class="n num">${m.ratio}</td></tr>`).join("")
+    + EXTRA_FAMILY.map(r => `<tr><td><strong>${r[0]}</strong></td><td>${r[1]}</td>
+      <td class="sub">${r[2]}</td><td class="n">${r[3]}</td><td class="n num">${r[4]}</td></tr>`).join("");
+  $("#threshRows").innerHTML = live.gases.map(g => {
+    const b = BASIS[g.name] || ["—", "—"];
+    const caveat = g.resolvable === false
+      ? ` <span class="sub">— but this sensor bottoms out at ${ppmFmt(g.min)} ${MQ.unit}, so it cannot see this level. Use a dedicated part.</span>`
+      : g.danger > g.max
+      ? ` <span class="sub">— the danger level is above this sensor's ${ppmFmt(g.max)} ${MQ.unit} ceiling; it saturates first.</span>` : "";
+    return `<tr><td><strong>${g.name}</strong></td><td class="n num">${ppmFmt(g.warn)}</td>
+      <td class="n num">${ppmFmt(g.danger)}</td>
+      <td><strong>${b[0]}.</strong> <span class="sub">${b[1]}</span>${caveat}</td></tr>`;
+  }).join("");
+}
+
+/* ===========================================================================
+   Safety tab — occupancy verdict, sensor-derived index, CO blindness
+   =========================================================================== */
+
+/* Below the sensor's floor there is no signal. Treating the clamped floor
+   value as a real concentration would invent exposure that isn't measured. */
+const effPpm = g => (g.range === "below" ? 0 : g.ppm);
+
+/* Map the worst resolvable gas's fraction of its danger threshold onto the
+   CPCB 0–500 scale. The anchors are chosen so the boundaries mean something:
+   the warning threshold lands on 100, the danger threshold on 200. */
+function gasIndex() {
+  if (!live) return {idx: 0, driver: null};
+  let f = 0, driver = null;
+  live.gases.forEach(g => {
+    if (g.resolvable === false || !g.danger) return;
+    const frac = effPpm(g) / g.danger;
+    if (frac > f) { f = frac; driver = g; }
+  });
+  let idx;
+  if      (f <= 0.5) idx = f / 0.5 * 100;
+  else if (f <= 1)   idx = 100 + (f - 0.5) / 0.5 * 100;
+  else if (f <= 2)   idx = 200 + (f - 1) * 100;
+  else if (f <= 5)   idx = 300 + (f - 2) / 3 * 100;
+  else               idx = 400 + Math.min(1, (f - 5) / 5) * 100;
+  return {idx: Math.round(Math.max(0, Math.min(500, idx))), driver};
+}
+const bandFor = idx =>
+  CPCB_BANDS.find(b => idx >= b[0] && idx <= b[1]) || CPCB_BANDS[CPCB_BANDS.length - 1];
+
+/* Occupancy verdict, evaluated in strict order of urgency: explosion risk
+   outranks toxicity, because an explosion does not wait for a dose. */
+function verdict() {
+  const out = {level: "SAFE", title: "Safe for normal occupancy", why: "", facts: []};
+  if (!live) { out.title = "No reading"; return out; }
+
+  let comb = null, tox = null;
+  live.gases.forEach(g => {
+    if (g.resolvable === false) return;
+    const e = EXPOSURE[g.name]; if (!e) return;
+    const c = effPpm(g);
+    if (e.kind === "combustible" && e.lel) {
+      const pct = 100 * c / e.lel;
+      if (!comb || pct > comb.pct) comb = {g, e, c, pct};
+    }
+    if (e.kind === "toxic" && e.twa) {
+      const mult = c / e.twa;
+      if (!tox || mult > tox.mult) tox = {g, e, c, mult};
+    }
+  });
+
+  if (comb) out.facts.push(["Worst combustible", fmt(comb.pct, 2), "% of " + comb.g.name + " LEL"]);
+  if (tox && tox.mult > 0)
+    out.facts.push(["Worst toxic", fmt(tox.mult, 2) + "×", tox.g.name + " 8-h limit"]);
+
+  if (comb && comb.pct >= 20) {
+    out.level = "DANGER";
+    out.title = "Do not enter — explosion risk";
+    out.why = `${comb.g.name} is at ${fmt(comb.pct, 1)}% of its lower explosive limit. ` +
+      `Above 20% LEL an ignition source can start a deflagration. Do not operate switches, ` +
+      `do not use a phone in the room, ventilate from outside.`;
+  } else if (comb && comb.pct >= 10) {
+    out.level = "WARNING";
+    out.title = "Evacuate and ventilate";
+    out.why = `${comb.g.name} has passed 10% of its lower explosive limit — the standard ` +
+      `industrial alarm point, set a factor of ten below an ignitable atmosphere. ` +
+      `Clear the room, remove ignition sources, open it up, find the leak.`;
+  } else if (tox && tox.e.idlh && tox.c >= tox.e.idlh) {
+    out.level = "DANGER";
+    out.title = "Do not enter without breathing apparatus";
+    out.why = `${tox.g.name} is at or above ${fmt(tox.e.idlh, 0)} ppm, the concentration ` +
+      `immediately dangerous to life and health. Entry requires supplied air, not a mask.`;
+  } else if (tox && tox.mult >= 1) {
+    const mins = Math.max(1, Math.round(480 / tox.mult));
+    out.level = "WARNING";
+    out.title = `Limited entry — about ${mins} minutes`;
+    out.why = `${tox.g.name} is at ${ppmFmt(tox.c)} ppm against an 8-hour limit of ` +
+      `${ppmFmt(tox.e.twa)} ppm (${tox.e.twaSrc}). At this concentration a person reaches ` +
+      `their full-shift dose in roughly ${mins} minutes.`;
+    out.facts.push(["Permissible time", String(mins), "minutes at this level"]);
+  } else if (live.status !== "SAFE") {
+    // Not every gas has a published exposure limit — smoke on an MQ-2 is a
+    // proxy curve, not a compound. Falling through to "safe" here would let
+    // the page contradict its own alarm, so the detector's verdict stands.
+    const w = worstGas();
+    out.level = live.status;
+    out.title = live.status === "DANGER"
+      ? `Alarm — ${w.name} above danger threshold`
+      : `Elevated — ${w.name} above warning threshold`;
+    out.why = `The sensor is reading ${ppmFmt(w.ppm)} ${MQ.unit} interpreted as ${w.name}, ` +
+      `against a threshold of ${ppmFmt(live.status === "DANGER" ? w.danger : w.warn)}. ` +
+      `There is no published occupational exposure limit to convert this into a permitted ` +
+      `entry time — treat it as "something is burning or leaking, find it".`;
+  } else {
+    out.why = `Nothing this sensor can resolve is above its threshold. The index below ` +
+      `reads ${gasIndex().idx} out of 500.`;
+  }
+
+  // The verdict may be more urgent than the alarm — an explosion risk outranks
+  // a threshold breach — but it must never look calmer than it. Without this,
+  // rising gas could take the page from red back to orange.
+  const rank = {SAFE: 0, WARNING: 1, DANGER: 2};
+  if (rank[live.status] > rank[out.level]) out.level = live.status;
+  return out;
+}
+
+function renderSafety() {
+  if (!live) return;
+  const v = verdict(), gi = gasIndex(), idx = gi.idx, band = bandFor(idx);
+
+  $("#verdictCard").className = "card wide hero " + v.level;
+  $("#verdictTitle").textContent = v.title;
+  $("#verdictTitle").style.color =
+    `var(--${v.level === "DANGER" ? "danger" : v.level === "WARNING" ? "warn" : "safe"})`;
+  $("#verdictWhy").textContent = v.why;
+  kv("#verdictFacts", v.facts.length ? v.facts : [["Status", "All clear", ""]]);
+
+  $("#cgiValue").textContent = idx;
+  $("#cgiValue").style.color = band[3];
+  const t = $("#cgiBand");
+  t.textContent = band[2];
+  t.style.background = band[3]; t.style.color = band[4];
+  const bar = $("#cgiBar");
+  bar.style.width = (idx / 500 * 100) + "%";
+  bar.style.background = band[3];
+  $("#cgiWhy").innerHTML = (gi.driver
+      ? `Driven by <b>${gi.driver.name}</b> at ${ppmFmt(gi.driver.ppm)} ${MQ.unit}` +
+        (gi.driver.range === "above" ? " <b>(sensor saturated)</b>" : "") + ". "
+      : "Nothing above the sensor's detection floor. ") +
+    `The index is that gas's fraction of its danger threshold, mapped onto the CPCB scale — ` +
+    `the warning threshold lands on 100, the danger threshold on 200.`;
+
+  if (!$("#cpcbStrip").childElementCount) {
+    $("#cpcbStrip").innerHTML = CPCB_BANDS.map(b =>
+      `<div style="flex:1;background:${b[3]};color:${b[4]};padding:7px 4px;text-align:center;
+        font-size:.68rem;font-weight:600;letter-spacing:.01em">${b[2]}</div>`).join("");
+    $("#cpcbRows").innerHTML = CPCB_BANDS.map(b =>
+      `<tr><td class="n num">${b[0]}–${b[1]}</td>
+        <td><span class="tag" style="background:${b[3]};color:${b[4]}">${b[2]}</span></td>
+        <td class="sub">${b[5]}</td></tr>`).join("");
+    $("#aqiNeeds").innerHTML = AQI_NEEDS.map(r =>
+      `<tr><td><strong>${r[0]}</strong></td><td class="sub">${r[1]}</td>
+        <td class="n">${r[2] === "partial"
+          ? '<span class="tag WARNING">only &gt;200 ppm</span>'
+          : '<span class="tag DANGER">no</span>'}</td></tr>`).join("");
+    $("#coRows").innerHTML = EXPOSURE.CO.ladder.map(([p, label]) => {
+      const co = live.gases.find(g => g.name === "CO");
+      const blind = co ? p < co.min : p < 200;
+      return `<tr><td class="n num">${p} ppm</td><td${blind ? ' class="sub"' : ""}>${label}</td>
+        <td class="n">${blind ? '<span class="tag DANGER">blind</span>'
+                              : '<span class="tag SAFE">visible</span>'}</td></tr>`;
+    }).join("");
+  }
+
+  $("#exposureRows").innerHTML = live.gases.map(g => {
+    const e = EXPOSURE[g.name] || {};
+    const alarm = g.resolvable === false
+      ? '<span class="sub">excluded — below sensor floor</span>'
+      : ppmFmt(g.warn) + " ppm";
+    return `<tr><td><strong>${g.name}</strong></td>
+      <td class="sub">${e.hazard || "—"}</td>
+      <td class="n num">${e.twa ? ppmFmt(e.twa) + "<br><span class='sub'>" + e.twaSrc + "</span>" : "—"}</td>
+      <td class="n num">${e.ceiling ? ppmFmt(e.ceiling) + " ceiling<br>" : ""}${
+        e.idlh ? ppmFmt(e.idlh) + " IDLH" : (e.ceiling ? "" : "—")}</td>
+      <td class="n num">${e.lel ? ppmFmt(e.lel) + "<br><span class='sub'>" + e.lelSrc + "</span>" : "—"}</td>
+      <td class="n num">${alarm}</td></tr>`;
+  }).join("");
+
+  drawCoLadder();
+}
+
+/* The single most persuasive graphic in the project: every dangerous CO
+   concentration, drawn against the sensor's own detection floor. */
+function drawCoLadder() {
+  const svg = $("#coLadder"); if (!svg || !live) return;
+  const W = 900, H = 150, P = {l: 26, r: 26, t: 44, b: 40};
+  const lo = 10, hi = 2000, span = Math.log10(hi) - Math.log10(lo);
+  const x = v => P.l + (Math.log10(Math.max(lo, Math.min(hi, v))) - Math.log10(lo)) / span
+                     * (W - P.l - P.r);
+  const axisY = H - P.b;
+  const co = live.gases.find(g => g.name === "CO");
+  const floor = co ? co.min : 200;
+
+  let s = `<rect x="${x(lo)}" y="${P.t}" width="${x(floor) - x(lo)}" height="${axisY - P.t}"
+             fill="var(--danger)" opacity=".12" rx="7"/>
+           <text x="${(x(lo) + x(floor)) / 2}" y="${P.t - 16}" text-anchor="middle"
+             style="font-size:12px;font-weight:650;fill:var(--danger)">this sensor is blind in here</text>
+           <line x1="${P.l}" x2="${W - P.r}" y1="${axisY}" y2="${axisY}"
+             stroke="var(--line)" stroke-width="2"/>
+           <line x1="${x(floor)}" x2="${x(floor)}" y1="${P.t - 8}" y2="${axisY + 8}"
+             stroke="var(--danger)" stroke-width="2.5" stroke-dasharray="6 4"/>
+           <text x="${x(floor) + 8}" y="${P.t - 2}"
+             style="font-size:11px;font-weight:650;fill:var(--danger)">MQ-2 floor ${ppmFmt(floor)} ppm</text>`;
+
+  EXPOSURE.CO.ladder.forEach(([ppm]) => {
+    const px = x(ppm), blind = ppm < floor;
+    s += `<circle cx="${px}" cy="${axisY}" r="5" fill="var(--${blind ? "danger" : "warn"})"/>
+          <text x="${px}" y="${H - 14}" text-anchor="middle"
+            style="font-size:11px;font-weight:600;fill:var(--text)">${ppm}</text>`;
+  });
+  s += `<text x="${P.l}" y="${H - 1}" style="font-size:10px;fill:var(--text-3)">ppm CO, log scale</text>`;
+  svg.innerHTML = s;
+}
+
+/* ===========================================================================
+   Roadmap tab — static content, rendered once
+   =========================================================================== */
+let roadmapDrawn = false;
+
+function drawStage(i) {
+  const s = STAGES[i];
+  $("#stageWhat").textContent = s.what;
+  $("#aqiTiles").innerHTML = Object.entries(s.cov).map(([name, level]) => {
+    const tone = level === 2 ? "safe" : level === 1 ? "warn" : "danger";
+    return `<div class="card" style="padding:13px;border-color:var(--${tone});
+              background:var(--${tone}-bg)">
+        <div style="font-weight:650;font-size:1.05rem;letter-spacing:-.01em">${name}</div>
+        <div class="sub" style="color:var(--${tone});font-weight:600;font-size:.76rem;
+             text-transform:uppercase;letter-spacing:.04em;margin-top:3px">${COV_LABEL[level]}</div>
+      </div>`;
+  }).join("");
+}
+
+function renderRoadmap() {
+  if (roadmapDrawn) return;
+  roadmapDrawn = true;
+
+  $("#sensorRows").innerHTML = ADD_SENSORS.map(r => `<tr>
+      <td><strong>${r[0]}</strong></td>
+      <td>${r[1]}</td>
+      <td class="sub">${r[2]}</td>
+      <td class="sub">${r[3]}</td>
+      <td class="n num">₹${r[4]}</td></tr>`).join("");
+
+  $("#freeRows").innerHTML = FREE_METRICS.map(r => `<tr>
+      <td><strong>${r[0]}</strong></td>
+      <td class="sub">${r[1]}</td>
+      <td class="sub">${r[2]}</td></tr>`).join("");
+
+  $("#hardenRows").innerHTML = HARDENING.map(r => {
+    const tone = r[2] === "Critical" ? "DANGER" : r[2] === "High" ? "WARNING" : "SAFE";
+    return `<tr><td><strong>${r[0]}</strong></td><td class="sub">${r[1]}</td>
+      <td class="n"><span class="tag ${tone}">${r[2]}</span></td></tr>`;
+  }).join("");
+
+  wireSeg("#stageSeg", "#stagePill", i => drawStage(+i), "s");
+  drawStage(0);
+}
+
+function renderSystem() {
+  if (!live) return;
+  const up = live.uptime || 0;
+  const h = Math.floor(up / 3600), m = Math.floor(up % 3600 / 60), s = up % 60;
+  kv("#sysCore", [
+    ["Uptime", `${h}h ${m}m ${s}s`, ""],
+    ["Samples taken", fmt(live.samples || sampleCount, 0), ""],
+    ["Free heap", live.heap == null ? "—" : fmt(live.heap / 1024, 1), "kB"],
+    ["Alarm latched", live.alarm ? "Yes" : "No", ""],
+    ["Buzzer", live.muted ? "Silenced" : "Armed", ""],
+    ["Data source", demo ? "Simulated" : "Device /api", ""],
+  ]);
+  kv("#sysNet", [
+    ["IP address", live.ip || "—", ""],
+    ["Network", live.ssid || "—", ""],
+    ["Signal", live.rssi == null ? "—" : fmt(live.rssi, 0), "dBm"],
+    ["Quality", live.rssi == null ? "—" :
+      live.rssi > -60 ? "Excellent" : live.rssi > -70 ? "Good" : live.rssi > -80 ? "Fair" : "Weak", ""],
+  ]);
+  const age = live.calibAge || 0;
+  kv("#calFacts", [
+    ["R₀ stored", fmt(live.r0 / 1000, 2), "kΩ"],
+    ["Derived from", fmt(live.cleanAirRatio, 2), "clean-air ratio"],
+    ["Calibrated", age > 86400 ? fmt(age / 86400, 1) + " days ago" : fmt(age / 3600, 1) + " h ago", ""],
+    ["Implied clean Rs", fmt(live.r0 * live.cleanAirRatio / 1000, 2), "kΩ"],
+    ["Drift since", fmt((live.ratio - 1) * 100, 1), "% from baseline"],
+  ]);
+  $("#constRows").innerHTML = [
+    ["RL_OHMS", fmt(live.rl, 0) + " Ω", "Load resistor on the module. Measure it if ppm looks wrong across the whole range."],
+    ["VC_VOLTS", fmt(live.vc, 1) + " V", "Heater and divider supply."],
+    ["Clean-air ratio", fmt(live.cleanAirRatio, 2), "Datasheet Rs/R₀ in clean air. Sets R₀ during calibration."],
+    ["WARMUP_SECONDS", "180 s", "Heater stabilisation on every boot before any reading is reported."],
+    ["CALIB_SAMPLES", "64", "Averaged readings taken to derive R₀."],
+    ["EMA_ALPHA", "0.20", "Smoothing on raw voltage. Lower is calmer and slower."],
+    ["ALARM_CONFIRM_COUNT", "4", "Consecutive over-threshold readings before the alarm latches."],
+    ["ALARM_HOLD_MS", "10,000 ms", "Minimum time the alarm holds once latched."],
+  ].map(r => `<tr><td><code>${r[0]}</code></td><td class="n num">${r[1]}</td><td class="sub">${r[2]}</td></tr>`).join("");
+}
+
+/* ---- Controls ----------------------------------------------------------- */
+async function post(path) { try { await fetch(path, {method: "POST"}); } catch (e) {} }
+$("#btnMute").addEventListener("click", () => {
+  if (live) live.muted = !live.muted;
+  post("/api/mute"); render();
+});
+$("#btnBuzz").addEventListener("click", () => post("/api/test"));
+$("#btnLeak").addEventListener("click", () => { demoState.leak = 22; });
+$("#btnCal").addEventListener("click", async () => {
+  if (!confirm("Recalibrate R₀ now?\n\nOnly do this in clean outdoor air. Calibrating in contaminated air makes every future reading wrong.")) return;
+  await post("/api/calibrate");
+  alert("Calibrating. The device samples for a few seconds and stores the new R₀ in flash.");
+});
+$("#btnCsv").addEventListener("click", async e => {
+  const btn = e.currentTarget, label = "Download history CSV";
+  const names = live ? live.gases.map(g => g.name) : [];
+  const csv = [["iso_time", "rs_over_r0", "status", ...names.map(n => n + "_" + MQ.unit)].join(",")]
+    .concat(hist.map(h => [new Date(h.t).toISOString(), h.ratio.toFixed(4), h.status,
+                           ...h.ppm.map(p => p.toFixed(3))].join(","))).join("\n");
+  const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+
+  // Served from the device this is an ordinary browser download. Viewed as a
+  // hosted page the host mediates saving, so try that path first.
+  try {
+    const downloads = typeof claude !== "undefined" && claude.use
+      ? await claude.use("downloads") : null;
+    if (downloads) {
+      try {
+        await downloads.save({filename: `air-sentinel-${stamp}.csv`, data: csv});
+      } catch (err) {
+        if (err && err.code === "extension_not_enabled")
+          await downloads.save({filename: `air-sentinel-${stamp}.txt`, data: csv});
+        else if (err && err.code === "declined") return;
+        else throw err;
+      }
+      btn.textContent = "Saved"; setTimeout(() => btn.textContent = label, 1800);
+      return;
+    }
+  } catch (err) { /* fall through to the plain browser download */ }
+
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([csv], {type: "text/csv"}));
+  a.download = `air-sentinel-${stamp}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+/* ===========================================================================
+   Wiring diagram — laid out from the spec, so it cannot drift from reality
+   =========================================================================== */
+let BOARD = "uno";
+wireSeg("#boardSeg", "#boardPill", b => { BOARD = b; drawDiagram(); }, "b");
+
+function drawDiagram() {
+  const spec = WIRING[BOARD], svg = $("#diagram");
+  const CH = 26, CW = 84, GAP = 34, PAD = 54;
+  const LX = 70, GW = 200, MX = 400, MW = 180, RX = 710, RW = 200;
+
+  const pins = {};       // id -> {x, y, side}
+  let out = "";
+
+  function group(g, i, prefix, x, w, startY, side) {
+    const h = PAD + g.pins.length * GAP + 12;
+    out += `<rect class="board" x="${x}" y="${startY}" width="${w}" height="${h}" rx="16"/>
+            <text class="board-t" x="${x + 16}" y="${startY + 25}">${g.title}</text>
+            <text class="board-s" x="${x + 16}" y="${startY + 41}">${g.sub}</text>`;
+    g.pins.forEach((p, k) => {
+      const cy = startY + PAD + 12 + k * GAP;
+      const cx = side === "left" ? x + w : x;
+      out += `<rect class="chip" x="${cx - CW / 2}" y="${cy - CH / 2}" width="${CW}" height="${CH}" rx="8"/>
+              <text class="chip-t" x="${cx}" y="${cy + 4}" text-anchor="middle">${p}</text>`;
+      pins[prefix + "." + p] = {x: cx + (side === "left" ? CW / 2 : -CW / 2), y: cy, side};
+    });
+    return startY + h + 34;
+  }
+
+  let ly = 46, ry = 76;
+  spec.left.forEach((g, i) => { ly = group(g, i, "L" + i, LX, GW, ly, "left"); });
+  spec.right.forEach((g, i) => { ry = group(g, i, "R" + i, RX, RW, ry, "right"); });
+
+  // MCU pins inherit their partner's vertical position, then get pushed apart.
+  // Keyed by side as well as name: GND and 5 V are shared rails reached from
+  // both edges, and forcing them onto one edge would drag wires across the
+  // board. Any of the board's ground pins will do.
+  const byPin = new Map();
+  spec.links.forEach(([from, to, cls]) => {
+    const p = pins[from]; if (!p) return;
+    const key = to + "|" + p.side;
+    if (!byPin.has(key)) byPin.set(key, {key, name: to, side: p.side, ys: [], cls});
+    byPin.get(key).ys.push(p.y);
+  });
+  const place = side => {
+    const list = [...byPin.values()].filter(p => p.side === side)
+      .map(p => ({...p, y: p.ys.reduce((a, b) => a + b, 0) / p.ys.length}))
+      .sort((a, b) => a.y - b.y);
+    for (let i = 1; i < list.length; i++)
+      if (list[i].y - list[i - 1].y < GAP) list[i].y = list[i - 1].y + GAP;
+    return list;
+  };
+  const mcuPins = [...place("left"), ...place("right")];
+  const bottom = Math.max(ly, ry, ...mcuPins.map(p => p.y + 60));
+  const mcuTop = 46, mcuH = bottom - mcuTop - 20;
+  out = `<rect class="board" x="${MX}" y="${mcuTop}" width="${MW}" height="${mcuH}" rx="18"/>
+         <text class="board-t" x="${MX + MW / 2}" y="${mcuTop + 26}" text-anchor="middle">${spec.mcu.title}</text>
+         <text class="board-s" x="${MX + MW / 2}" y="${mcuTop + 43}" text-anchor="middle">${spec.mcu.sub}</text>` + out;
+
+  const pinXY = {};
+  mcuPins.forEach(p => {
+    const cx = p.side === "left" ? MX : MX + MW;
+    out += `<rect class="chip" x="${cx - CW / 2}" y="${p.y - CH / 2}" width="${CW}" height="${CH}" rx="8"/>
+            <text class="chip-t" x="${cx}" y="${p.y + 4}" text-anchor="middle">${p.name}</text>`;
+    pinXY[p.key] = {x: cx + (p.side === "left" ? -CW / 2 : CW / 2), y: p.y};
+  });
+
+  let wires = "";
+  spec.links.forEach(([from, to, cls, carries, why], i) => {
+    const a = pins[from]; if (!a) return;
+    const b = pinXY[to + "|" + a.side]; if (!b) return;
+    const d = `M${a.x} ${a.y} C${a.x + (a.side === "left" ? 34 : -34)} ${a.y}, ${b.x + (a.side === "left" ? -34 : 34)} ${b.y}, ${b.x} ${b.y}`;
+    wires += `<g class="link" data-i="${i}"><path class="wire ${cls}" d="${d}"/>
+              <path d="${d}" stroke="transparent" stroke-width="16" fill="none"/></g>`;
+  });
+
+  svg.setAttribute("viewBox", `0 0 980 ${Math.max(bottom + 24, 400)}`);
+  svg.innerHTML = wires + out;
+
+  svg.querySelectorAll("g.link").forEach(g => {
+    const [from, to, cls, carries, why] = spec.links[+g.dataset.i];
+    const show = () => {
+      svg.classList.add("dim");
+      svg.querySelectorAll("g.link").forEach(o => o.classList.toggle("on", o === g));
+      $("#diagCap").innerHTML = `<b>${from.replace(/^[LR]\d\./, "")} → ${to}</b> · ${carries}${why ? " — " + why : ""}`;
+    };
+    const hide = () => {
+      svg.classList.remove("dim");
+      svg.querySelectorAll("g.link").forEach(o => o.classList.remove("on"));
+      $("#diagCap").innerHTML = "<b>Hover or tap a wire</b> to see what it carries and why.";
+    };
+    g.addEventListener("pointerenter", show);
+    g.addEventListener("pointerleave", hide);
+    g.addEventListener("pointerdown", show);   // feedback on press, not on release
+  });
+
+  $("#connSub").textContent = `${spec.links.length} connections · ${spec.mcu.title}`;
+  $("#connRows").innerHTML = spec.links.map(([from, to, cls, carries, why]) => `<tr>
+      <td><strong>${from.replace(/^[LR]\d\./, "")}</strong>
+        <span class="sub">${labelOf(spec, from)}</span></td>
+      <td><strong>${to}</strong></td>
+      <td><span class="swatch" style="background:var(--w-${cls})"></span>${carries}</td>
+      <td class="sub">${why || "—"}</td></tr>`).join("");
+  $("#dividerCard").hidden = BOARD !== "esp";
+
+  const warn = spec.warnings.map(([k, t]) => `<p class="note ${k}">${t}</p>`).join("")
+    + `<p class="note">GND and the 5 V rail appear on both edges of the board because both sides need them. They are single rails — any ground pin will do, and every ground in the system must ultimately meet at one point.</p>`;
+  let holder = $("#diagWarn");
+  if (!holder) { holder = el("div", "stack mt"); holder.id = "diagWarn";
+    $("#diagram").parentElement.append(holder); }
+  holder.innerHTML = warn;
+}
+function labelOf(spec, id) {
+  const [g] = id.split(".");
+  const arr = g[0] === "L" ? spec.left : spec.right;
+  return arr[+g[1]] ? arr[+g[1]].title : "";
+}
+
+$("#lcdRows").innerHTML = LCD_PINS.map(r =>
+  `<tr><td class="n num">${r[0]}</td><td><code>${r[1]}</code></td><td class="sub">${r[2]}</td></tr>`).join("");
+
+/* ===========================================================================
+   Wire up the USB control, and be honest when the browser cannot do it
+   =========================================================================== */
+$("#btnUsb").hidden = !SERIAL_SUPPORTED;
+if (SERIAL_SUPPORTED) {
+  $("#btnUsb").addEventListener("click", connectUsb);
+} else {
+  const n = $("#usbNote");
+  n.hidden = false;
+  n.innerHTML = {
+    iframe:
+      "<b>This page is embedded in another page,</b> and an embedded frame is not allowed to " +
+      "open a USB port. Open the dashboard's own URL in its own tab and the Connect button " +
+      "appears. Everything below is simulated in the meantime.",
+    insecure:
+      "<b>Reading a USB port requires a secure page.</b> This one was opened over plain " +
+      "<code>http</code> or from a file on disk. Use the deployed <code>https</code> URL, or " +
+      "serve the folder from <code>localhost</code>. Everything below is simulated in the meantime.",
+    unsupported:
+      "<b>This browser has no Web Serial support.</b> It exists in <b>Chrome, Edge and Opera on " +
+      "desktop</b> — not Firefox, not Safari, and not any browser on a phone or tablet. " +
+      "Everything below is simulated in the meantime.",
+  }[SERIAL_BLOCK];
+}
+
+/* Controls that talk to the ESP8266's own HTTP server have no target when the
+   page is served from the web or reading over USB. Hiding a dead button beats
+   shipping one that silently does nothing. */
+function gateControls() {
+  const onDevice = source === "device";
+  $("#btnCal").hidden = !onDevice;
+  $("#btnBuzz").hidden = !onDevice;
+  $("#btnMute").hidden = !onDevice;
+  const note = $("#ctrlNote");
+  note.hidden = onDevice;
+  if (!onDevice) note.innerHTML =
+    "Recalibration and the buzzer test run on the detector itself. Over USB, open a serial " +
+    "terminal at 115200 and send <code>c</code> to recalibrate or <code>r</code> for raw " +
+    "diagnostics — close it again before reconnecting here, since only one program can hold " +
+    "the port.";
+}
+
+/* ===========================================================================
+   Go
+   =========================================================================== */
+poll();
+setInterval(poll, 2000);
+drawDiagram();
+gateControls();
+</script>
+)PAGE";
+
+#endif  // WEB_PAGE_H

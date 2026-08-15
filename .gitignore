@@ -1,0 +1,18 @@
+# Vercel — link files are per-machine, and .env.local holds a real OIDC token
+.vercel/
+.env
+.env.local
+.env*.local
+
+# Holds the WiFi password. Copy config.example.h to config.h and edit that.
+gas_detector_esp8266/config.h
+
+# Arduino build output
+build/
+*.hex
+*.elf
+
+# OS noise
+Thumbs.db
+desktop.ini
+.DS_Store
